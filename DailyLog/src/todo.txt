@@ -1,2 +1,3 @@
 - nemam bazu opcija
 - nemam tabelu opcija
+- glavni frame
