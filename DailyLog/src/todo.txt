@@ -1,0 +1,2 @@
+- nemam bazu opcija
+- nemam tabelu opcija
