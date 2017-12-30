@@ -1,16 +1,18 @@
 package sebamed.gui;
 
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -20,14 +22,16 @@ import javax.swing.WindowConstants;
 
 import sebamed.main.DbConnection;
 
-public class DatabaseConnectionFrame extends JFrame implements ActionListener {
+public class DatabaseConnectionDialog extends JDialog implements ActionListener {
 
 	JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser, textFieldDbPassword;
 	JLabel labelServerAdress, labelServerPort, labelDbName, labelDbUser, labelDbPassword;
 	JButton buttonConnect, buttonReset;
 	JPanel jp;
 
-	public DatabaseConnectionFrame() {
+	public DatabaseConnectionDialog(JFrame parent, String title) {
+		
+		super(parent, title);
 
 		this.jp = new JPanel();
 		this.jp.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
@@ -74,6 +78,26 @@ public class DatabaseConnectionFrame extends JFrame implements ActionListener {
 		// buttons action
 		this.buttonConnect.addActionListener(this);
 		this.buttonReset.addActionListener(this);
+		
+		
+		// focus listener
+		this.addWindowFocusListener(new WindowFocusListener() {
+
+            public void windowGainedFocus(WindowEvent e) {
+            	
+            }
+
+            public void windowLostFocus(WindowEvent e) {
+            	// always focused
+            	DatabaseConnectionDialog.this.textFieldServerAdress.requestFocus();
+            	DatabaseConnectionDialog.this.toFront();
+            	// adds error sound
+            	final Runnable runnable = (Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation");
+            	 if (runnable != null)
+            	   runnable.run();
+            }
+
+        });
 
 		jp.setLayout(new GridLayout(7, 2));
 		this.setVisible(true);
@@ -126,6 +150,8 @@ public class DatabaseConnectionFrame extends JFrame implements ActionListener {
 				this.establishConnection(this.textFieldServerAdress.getText(), this.textFieldServerPort.getText(),
 						this.textFieldDbName.getText(), this.textFieldDbUser.getText(),
 						this.textFieldDbPassword.getText());
+				
+				this.dispose(); // zatvaranje dialoga
 
 			}
 		}

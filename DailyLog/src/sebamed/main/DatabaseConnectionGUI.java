@@ -1,9 +1,9 @@
 package sebamed.main;
 
-import sebamed.gui.DatabaseConnectionFrame;
+import sebamed.gui.DatabaseConnectionDialog;
 
 public class DatabaseConnectionGUI {
 
-	DatabaseConnectionFrame dbc = new DatabaseConnectionFrame();
+	
 	
 }
