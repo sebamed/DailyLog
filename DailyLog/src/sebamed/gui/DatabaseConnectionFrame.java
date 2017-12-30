@@ -1,8 +1,10 @@
-package sebamed.frame;
+package sebamed.gui;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -14,17 +16,18 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 
 import sebamed.main.DbConnection;
 
-public class DatabaseConnection extends JFrame implements ActionListener {
+public class DatabaseConnectionFrame extends JFrame implements ActionListener {
 
 	JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser, textFieldDbPassword;
 	JLabel labelServerAdress, labelServerPort, labelDbName, labelDbUser, labelDbPassword;
 	JButton buttonConnect, buttonReset;
 	JPanel jp;
 
-	public DatabaseConnection() {
+	public DatabaseConnectionFrame() {
 
 		this.jp = new JPanel();
 		this.jp.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
@@ -75,8 +78,10 @@ public class DatabaseConnection extends JFrame implements ActionListener {
 		jp.setLayout(new GridLayout(7, 2));
 		this.setVisible(true);
 		this.setSize(400, 250);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLocationRelativeTo(null);
+		this.setResizable(false);	
+		
 	}
 
 	@Override

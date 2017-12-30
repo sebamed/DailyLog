@@ -1,3 +1,4 @@
 - nemam bazu opcija
 - nemam tabelu opcija
-- glavni frame
+- glavni frame - poceo
+- dodati naslove frejmova
