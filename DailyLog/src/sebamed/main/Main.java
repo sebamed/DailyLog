@@ -1,9 +1,5 @@
 package sebamed.main;
 
-import java.sql.*;
-
-import sebamed.dao.LogDAO;
-
 public class Main {
 	
 

@@ -1,4 +1,4 @@
 - nemam bazu opcija
 - nemam tabelu opcija
+- prikazi password opcija - uradjena
 - glavni frame - poceo
-- dodati naslove frejmova
