@@ -24,4 +24,14 @@ public class DbConnection {
 		}
 	}
 	
+	public static void closeConnection() {
+		try {
+			conn.close();
+			System.out.println("Zatvorena konekcija!");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Konekcija nije zatvorena!");
+		}
+	}
+	
 }

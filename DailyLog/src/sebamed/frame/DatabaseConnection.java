@@ -89,9 +89,10 @@ public class DatabaseConnection extends JFrame implements ActionListener {
 				JOptionPane.showMessageDialog(null, "You have to fill in all the fields!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			} else {
+				Connection conn = null;
 				try {
 					Class.forName("com.mysql.jdbc.Driver");
-					Connection conn = DriverManager.getConnection(
+					conn = DriverManager.getConnection(
 							"jdbc:mysql://" + this.textFieldServerAdress.getText() + ":"
 									+ this.textFieldServerPort.getText() + "/" + this.textFieldDbName.getText()
 									+ "?useSSL=false",
@@ -106,11 +107,21 @@ public class DatabaseConnection extends JFrame implements ActionListener {
 					return;
 				}
 
+				System.out.println("DatabaseConnection.class: Konekcija uspesna!");
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				System.out.println("DatabaseConnection.class: Zatvorena konekcija!");
+				
 				JOptionPane.showMessageDialog(null, "Success!", "Success", JOptionPane.INFORMATION_MESSAGE);
+				
+				// postavljanje staticke promenljive conn iz DbConnection koja ce se dalje koristiti u app 
 				this.establishConnection(this.textFieldServerAdress.getText(), this.textFieldServerPort.getText(),
 						this.textFieldDbName.getText(), this.textFieldDbUser.getText(),
 						this.textFieldDbPassword.getText());
-				System.out.println("Konekcija uspesna!");
+
 			}
 		}
 
@@ -125,7 +136,8 @@ public class DatabaseConnection extends JFrame implements ActionListener {
 
 	}
 
-	public void establishConnection(String serverAdress, String serverPort, String dbName, String username, String pass) {
+	public void establishConnection(String serverAdress, String serverPort, String dbName, String username,
+			String pass) {
 		DbConnection.setConnection(serverAdress, serverPort, dbName, username, pass);
 	}
 
