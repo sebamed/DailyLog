@@ -1,4 +1,5 @@
-- nemam bazu opcija
-- nemam tabelu opcija
+- nemam bazu opcija - uradjen gui
+- save settings opcija - uradjen gui
+- nemam tabelu opcija - uradjen gui
 - prikazi password opcija - uradjena
 - glavni frame - poceo

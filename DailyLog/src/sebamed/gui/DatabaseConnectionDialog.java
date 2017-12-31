@@ -2,7 +2,9 @@ package sebamed.gui;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -33,14 +36,13 @@ import sebamed.main.DbConnection;
 public class DatabaseConnectionDialog extends JDialog implements ActionListener {
 
 	JPanel jp, jpMoreOptions;
-	JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser;
+	JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser, textFieldNewDb, textFieldNewTable;
 	JPasswordField passFieldDbPassword;
 	JLabel labelServerAdress, labelServerPort, labelDbName, labelDbUser, labelDbPassword, labelShowAdvancedOptions;
 	JButton buttonConnect, buttonReset;
-	JCheckBox cbShowPassword;
+	JCheckBox cbShowPassword, cbMakeDb, cbMakeTable, cbSaverSettings;
 
-	boolean moreOptions = false;
-	boolean showPassword = false;
+	boolean moreOptions = false, showPassword = false, makeNewDb = false, makeNewTable = false;
 
 	public DatabaseConnectionDialog(JFrame parent, String title) {
 
@@ -48,23 +50,30 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 
 		// main panel
 		this.jp = new JPanel();
-		this.jp.setBorder(BorderFactory.createEmptyBorder(10, 10, -25, 10));
+		this.jp.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		this.jp.setLayout(new GridBagLayout());
+		GridBagConstraints gbcDbInfo = new GridBagConstraints();
+		gbcDbInfo.fill = GridBagConstraints.HORIZONTAL;
+		gbcDbInfo.insets = new Insets(3, 3, 3, 3);
 		
-
 		// more options panel
 		this.jpMoreOptions = new JPanel();
-		this.jpMoreOptions.setBackground(Color.YELLOW);
-		this.jpMoreOptions.add(new JLabel("asd"));
-		this.jpMoreOptions.add(new JLabel("asd"));
-		this.jpMoreOptions.add(new JLabel("asd"));
-		this.jpMoreOptions.add(new JLabel("asd"));
-		this.jpMoreOptions.add(new JLabel("asd"));
+		this.jpMoreOptions.setLayout(new GridBagLayout());
+		this.jpMoreOptions.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		this.jpMoreOptions.setVisible(false);
+		GridBagConstraints gbcMoreOptions = new GridBagConstraints();
+		gbcMoreOptions.fill = GridBagConstraints.HORIZONTAL;
+		
 
 		// text fields
 		this.textFieldServerAdress = new JTextField(15);
 		this.textFieldServerPort = new JTextField(15);
 		this.textFieldDbName = new JTextField(15);
 		this.textFieldDbUser = new JTextField(15);
+		this.textFieldNewDb = new JTextField(15);
+		this.textFieldNewTable = new JTextField(15);
+		
+		// password fields
 		this.passFieldDbPassword = new JPasswordField(15);
 
 		// labels
@@ -73,7 +82,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		this.labelDbName = new JLabel("Database name:");
 		this.labelDbUser = new JLabel("Authentication username:");
 		this.labelDbPassword = new JLabel("Authentication password:");
-		this.labelShowAdvancedOptions = new JLabel("Show advanced options");
+		this.labelShowAdvancedOptions = new JLabel("Show advanced options " + '\u25BC'); // 'BLACK DOWN-POINTING TRIANGLE' (U+25BC)
 
 		// buttons
 		this.buttonConnect = new JButton("Connect");
@@ -81,33 +90,94 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		
 		// check boxes
 		this.cbShowPassword = new JCheckBox("Show password");
+		this.cbMakeDb = new JCheckBox("Make me a database");
+		this.cbMakeTable = new JCheckBox("Make me a table");
+		this.cbSaverSettings = new JCheckBox("Remember current settings");
 
-		add(this.jp);
-		// show all
+		this.add(this.jp);
+		// show all in jp
 		// server adress
-		jp.add(this.labelServerAdress);
-		jp.add(this.textFieldServerAdress);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 0;
+		jp.add(this.labelServerAdress, gbcDbInfo);
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 0;
+		jp.add(this.textFieldServerAdress, gbcDbInfo);
 		// server port
-		jp.add(this.labelServerPort);
-		jp.add(this.textFieldServerPort);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 1;
+		jp.add(this.labelServerPort, gbcDbInfo);
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 1;
+		jp.add(this.textFieldServerPort, gbcDbInfo);
 		// db name
-		jp.add(this.labelDbName);
-		jp.add(this.textFieldDbName);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 2;
+		jp.add(this.labelDbName, gbcDbInfo);
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 2;
+		jp.add(this.textFieldDbName, gbcDbInfo);
 		// db username
-		jp.add(this.labelDbUser);
-		jp.add(this.textFieldDbUser);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 3;
+		jp.add(this.labelDbUser, gbcDbInfo);
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 3;
+		jp.add(this.textFieldDbUser, gbcDbInfo);
 		// user password
-		jp.add(this.labelDbPassword);
-		jp.add(this.passFieldDbPassword);
-		
-		jp.add(new JLabel("")); // placeholder
-		jp.add(this.cbShowPassword);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 4;
+		jp.add(this.labelDbPassword, gbcDbInfo);
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 4;
+		jp.add(this.passFieldDbPassword, gbcDbInfo);
+		// show/hide password
+		gbcDbInfo.gridx = 1;
+		gbcDbInfo.gridy = 5;
+		jp.add(this.cbShowPassword, gbcDbInfo);
 		// buttons
-		jp.add(this.buttonConnect);
-		jp.add(this.buttonReset);
+		gbcDbInfo.gridwidth = 2;
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 6;
+		jp.add(this.buttonConnect, gbcDbInfo);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 7;
+		jp.add(this.buttonReset, gbcDbInfo);
 
 		// show advanced options
-		jp.add(this.labelShowAdvancedOptions);
+		gbcDbInfo.gridx = 0;
+		gbcDbInfo.gridy = 8;
+		jp.add(this.labelShowAdvancedOptions, gbcDbInfo);
+		
+		// show all in show more jPanel
+		// make new db
+		gbcMoreOptions.gridx = 0;
+		gbcMoreOptions.gridy = 0;
+		jpMoreOptions.add(this.cbMakeDb, gbcMoreOptions);
+		gbcMoreOptions.gridx = 1;
+		gbcMoreOptions.gridy = 0;
+		jpMoreOptions.add(this.textFieldNewDb, gbcMoreOptions);
+		gbcMoreOptions.gridx = 0;
+		gbcMoreOptions.gridy = 1;
+		jpMoreOptions.add(this.cbMakeTable, gbcMoreOptions);
+		gbcMoreOptions.gridx = 1;
+		gbcMoreOptions.gridy = 1;
+		jpMoreOptions.add(this.textFieldNewTable, gbcMoreOptions);
+		gbcMoreOptions.gridwidth = 2;
+		gbcMoreOptions.gridx = 0;
+		gbcMoreOptions.gridy = 2;
+		jpMoreOptions.add(this.cbSaverSettings, gbcMoreOptions);
+		
+		// settings for text fields in jpMoreOptions
+		this.textFieldNewDb.setEnabled(false);
+		this.textFieldNewDb.setText("Your database name");
+			
+		this.textFieldNewTable.setEnabled(false);
+		this.textFieldNewTable.setText("Your table name");
+
+		
+		
+		this.add(this.jpMoreOptions);
 
 		// buttons action
 		this.buttonConnect.addActionListener(this);
@@ -117,9 +187,11 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		
 		// LISTENERS
 		
+		// CHECKBOX
+		// Show/hide password
 		this.cbShowPassword.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				if(e.getStateChange() == ItemEvent.SELECTED) { // password should be visible
+				if(e.getStateChange() == ItemEvent.SELECTED) { // password should be visible					
 					DatabaseConnectionDialog.this.showPassword = true;
 					DatabaseConnectionDialog.this.passFieldDbPassword.setEchoChar((char) 0);					
 				} else { // password should be invisible
@@ -129,20 +201,58 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 			}
 		});
 		
+		this.cbMakeDb.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange() == ItemEvent.SELECTED) {
+					// settings for make new database
+					DatabaseConnectionDialog.this.makeNewDb = true;
+					DatabaseConnectionDialog.this.textFieldNewDb.setText(null);
+					DatabaseConnectionDialog.this.textFieldNewDb.setEnabled(true);
+					DatabaseConnectionDialog.this.textFieldNewDb.requestFocus();
+					// settings for make new table (when user doesnt have a database, he doesnt have a table eather)
+					DatabaseConnectionDialog.this.cbMakeTable.setSelected(true);
+				} else {
+					DatabaseConnectionDialog.this.makeNewDb = false;
+					DatabaseConnectionDialog.this.textFieldNewDb.setText("Your database name");
+					DatabaseConnectionDialog.this.textFieldNewDb.setEnabled(false);
+				}
+			}
+		});
+		
+		this.cbMakeTable.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange() == ItemEvent.SELECTED) {
+					DatabaseConnectionDialog.this.makeNewTable = true;
+					DatabaseConnectionDialog.this.textFieldNewTable.setText(null);
+					DatabaseConnectionDialog.this.textFieldNewTable.setEnabled(true);
+					DatabaseConnectionDialog.this.textFieldNewTable.requestFocus();
+				} else {
+					if(DatabaseConnectionDialog.this.makeNewDb) { // must have both checked
+						JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "You can't avoid making new table if you don't have a database!", "Warning", JOptionPane.WARNING_MESSAGE);
+						return;
+					}
+					DatabaseConnectionDialog.this.makeNewTable = false;
+					DatabaseConnectionDialog.this.textFieldNewTable.setText("Your table name");
+					DatabaseConnectionDialog.this.textFieldNewTable.setEnabled(false);
+				}
+			}
+		});
+		
+		
 		// show advanced options click
 		this.labelShowAdvancedOptions.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (!DatabaseConnectionDialog.this.moreOptions) {
-					// TODO: dodaj prosirenje sa opcijama za: pravljenje baze, pravljenje tabele
-					DatabaseConnectionDialog.this.add(DatabaseConnectionDialog.this.jpMoreOptions);
-					DatabaseConnectionDialog.this.setSize(400, 400);
-					DatabaseConnectionDialog.this.labelShowAdvancedOptions.setText("Hide advanced options");
-					DatabaseConnectionDialog.this.moreOptions = true;
+					// TODO: dodaj prosirenje sa opcijama za: pravljenje baze, pravljenje tabele	
+					DatabaseConnectionDialog.this.jpMoreOptions.setVisible(true);
+					DatabaseConnectionDialog.this.labelShowAdvancedOptions.setText("Hide advanced options "+ '\u25B2'); // 'BLACK UP-POINTING TRIANGLE' (U+25B2)
+					DatabaseConnectionDialog.this.moreOptions = true;		
+					pack();
 				} else {
-					DatabaseConnectionDialog.this.setSize(400, 300);
+					DatabaseConnectionDialog.this.jpMoreOptions.setVisible(false);
 					DatabaseConnectionDialog.this.moreOptions = false;
-					DatabaseConnectionDialog.this.labelShowAdvancedOptions.setText("Show advanced options");
-					
+					DatabaseConnectionDialog.this.labelShowAdvancedOptions.setText("Show advanced options " + '\u25BC'); // 'BLACK UP-POINTING TRIANGLE' (U+25BC)
+					pack();
 				}
 
 			}
@@ -170,10 +280,9 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 
 		});
 
-		jp.setLayout(new GridLayout(9, 2));
-
+		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
 		this.setVisible(true);
-		this.setSize(400, 300);
+		this.pack();
 		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		this.setResizable(false);
@@ -187,7 +296,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 			if (this.textFieldServerAdress.getText().equals("") || this.textFieldServerPort.getText().equals("")
 					|| this.textFieldDbName.getText().equals("") || this.textFieldDbUser.getText().equals("")
 					|| this.passFieldDbPassword.getPassword().toString().equals("")) {
-				JOptionPane.showMessageDialog(null, "You have to fill in all the fields!", "Error",
+				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "You have to fill in all the fields!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			} else {
 				Connection conn = null;
@@ -216,7 +325,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 				}
 				System.out.println("DatabaseConnection.class: Zatvorena konekcija!");
 
-				JOptionPane.showMessageDialog(null, "Success!", "Success", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "Success!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
 				// postavljanje staticke promenljive conn iz DbConnection koja ce se dalje
 				// koristiti u app

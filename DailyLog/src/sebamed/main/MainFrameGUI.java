@@ -6,6 +6,6 @@ import sebamed.gui.MainFrame;
 public class MainFrameGUI {
 	
 		MainFrame mframe = new MainFrame();
-		DatabaseConnectionDialog dbcDialog = new DatabaseConnectionDialog(mframe, "test");
+		DatabaseConnectionDialog dbcDialog = new DatabaseConnectionDialog(mframe, "MySql Connection");
 
 }
