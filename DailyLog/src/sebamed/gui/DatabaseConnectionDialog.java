@@ -1,6 +1,5 @@
 package sebamed.gui;
 
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -14,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -31,23 +31,32 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import sebamed.entity.Database;
 import sebamed.main.DbConnection;
+import sebamed.main.PropertiesFile;
 
 public class DatabaseConnectionDialog extends JDialog implements ActionListener {
-
-	JPanel jp, jpMoreOptions;
-	JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser, textFieldNewDb, textFieldNewTable;
-	JPasswordField passFieldDbPassword;
-	JLabel labelServerAdress, labelServerPort, labelDbName, labelDbUser, labelDbPassword, labelShowAdvancedOptions;
-	JButton buttonConnect, buttonReset;
-	JCheckBox cbShowPassword, cbMakeDb, cbMakeTable, cbSaverSettings;
-
-	boolean moreOptions = false, showPassword = false, makeNewDb = false, makeNewTable = false;
+	
+	// SWING
+	private JPanel jp, jpMoreOptions;
+	private JTextField textFieldServerAdress, textFieldServerPort, textFieldDbName, textFieldDbUser, textFieldNewDb, textFieldNewTable;
+	private JPasswordField passFieldDbPassword;
+	private JLabel labelServerAdress, labelServerPort, labelDbName, labelDbUser, labelDbPassword, labelShowAdvancedOptions;
+	private JButton buttonConnect, buttonReset;
+	private JCheckBox cbShowPassword, cbMakeDb, cbMakeTable, cbSaveSettings;
+	
+	// Properties
+	private PropertiesFile pFile;
+	
+	// bool
+	boolean moreOptions = false, showPassword = false, makeNewDb = false, makeNewTable = false, saveSettings = false;
 
 	public DatabaseConnectionDialog(JFrame parent, String title) {
 
 		super(parent, title);
-
+		
+		this.pFile = new PropertiesFile();
+		
 		// main panel
 		this.jp = new JPanel();
 		this.jp.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -92,7 +101,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		this.cbShowPassword = new JCheckBox("Show password");
 		this.cbMakeDb = new JCheckBox("Make me a database");
 		this.cbMakeTable = new JCheckBox("Make me a table");
-		this.cbSaverSettings = new JCheckBox("Remember current settings");
+		this.cbSaveSettings = new JCheckBox("Remember current settings");
 
 		this.add(this.jp);
 		// show all in jp
@@ -147,6 +156,14 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		// show advanced options
 		gbcDbInfo.gridx = 0;
 		gbcDbInfo.gridy = 8;
+		
+		try {
+			this.getDbInfo();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		jp.add(this.labelShowAdvancedOptions, gbcDbInfo);
 		
 		// show all in show more jPanel
@@ -166,7 +183,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		gbcMoreOptions.gridwidth = 2;
 		gbcMoreOptions.gridx = 0;
 		gbcMoreOptions.gridy = 2;
-		jpMoreOptions.add(this.cbSaverSettings, gbcMoreOptions);
+		jpMoreOptions.add(this.cbSaveSettings, gbcMoreOptions);
 		
 		// settings for text fields in jpMoreOptions
 		this.textFieldNewDb.setEnabled(false);
@@ -201,6 +218,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 			}
 		});
 		
+		// make new db
 		this.cbMakeDb.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
@@ -219,6 +237,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 			}
 		});
 		
+		// make new table
 		this.cbMakeTable.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
@@ -234,6 +253,17 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 					DatabaseConnectionDialog.this.makeNewTable = false;
 					DatabaseConnectionDialog.this.textFieldNewTable.setText("Your table name");
 					DatabaseConnectionDialog.this.textFieldNewTable.setEnabled(false);
+				}
+			}
+		});
+		
+		// save preset
+		this.cbSaveSettings.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange() == ItemEvent.SELECTED) {
+					DatabaseConnectionDialog.this.saveSettings = true;
+				} else {
+					DatabaseConnectionDialog.this.saveSettings = false;
 				}
 			}
 		});
@@ -327,6 +357,12 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 
 				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "Success!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
+				try {
+					this.checkForCheckBoxes();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 				// postavljanje staticke promenljive conn iz DbConnection koja ce se dalje
 				// koristiti u app
 				this.establishConnection(this.textFieldServerAdress.getText(), this.textFieldServerPort.getText(),
@@ -348,8 +384,31 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		}
 
 	}
+	
+	private void checkForCheckBoxes() throws IOException {
+		if(this.saveSettings) {
+			this.sendSettings();
+		}
+	}
+	
+	private void getDbInfo() throws IOException {
+		if(this.pFile.fetchDbFromFile()!=null) {
+			Database newDb = this.pFile.fetchDbFromFile();
+			System.out.println("Saved preset" + newDb);
+			this.textFieldServerAdress.setText(newDb.getDbAdress());
+			this.textFieldServerPort.setText(newDb.getDbPort());
+			this.textFieldDbName.setText(newDb.getDbName());
+			this.textFieldDbUser.setText(newDb.getDbUsername());
+		} else {
+			return;
+		}
+	}
+	
+	private void sendSettings() throws IOException {
+		this.pFile.writeToFile(new Database(this.textFieldServerAdress.getText(), this.textFieldDbName.getText(), this.textFieldServerPort.getText(), this.textFieldDbUser.getText()));
+	}
 
-	public void establishConnection(String serverAdress, String serverPort, String dbName, String username,
+	private void establishConnection(String serverAdress, String serverPort, String dbName, String username,
 			String pass) {
 		DbConnection.setConnection(serverAdress, serverPort, dbName, username, pass);
 	}
