@@ -58,6 +58,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// combo boxes
 		this.combDate = new JComboBox(this.getDates());
+		this.combDate.setSelectedItem(this.combDate.getItemAt(0));
 
 		// lables
 		this.lblAddTitle = new JLabel("Log title:", SwingConstants.RIGHT);
@@ -141,7 +142,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		// Add new tab
 		this.jpNew = new JPanel();
 		this.jpNew.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpNew.setBackground(Color.MAGENTA);
+		// this.jpNew.setBackground(Color.MAGENTA);
 		this.jpNew.setLayout(new GridBagLayout());
 		GridBagConstraints gbcAddNew = new GridBagConstraints();
 		gbcAddNew.insets = new Insets(5, 5, 5, 5);
@@ -178,6 +179,11 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.tpMain.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ce) {
 				// temp fix for gui bug (size changing)
+				try {
+					MainFrame.this.refreshTable();
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
 				MainFrame.this.pack();
 			}
 		});
@@ -237,7 +243,6 @@ public class MainFrame extends JFrame implements ActionListener {
 		if (ae.getSource() == this.btnRefresh) { // refresh button pressed
 			try {
 				this.refreshTable();
-				System.out.println("Refreshed");
 			} catch (SQLException e) {
 				System.out.println(e);
 			}
@@ -246,6 +251,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	public void refreshTable() throws SQLException {
 		this.tblLogs.setModel(this.lDao.getDataSet());
+		System.out.println("Refreshed");
 	}
 
 	public void setComponentsEnabled(boolean enabled) {
