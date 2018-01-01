@@ -3,3 +3,4 @@
 - nemam tabelu opcija - uradjen gui
 - prikazi password opcija - uradjena
 - glavni frame - poceo
+- dodaj klasu sa JOptionPane preset-ima

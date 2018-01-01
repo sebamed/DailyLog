@@ -11,8 +11,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -20,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -34,11 +38,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import sebamed.dao.LogDAO;
+import sebamed.entity.Log;
 
 public class MainFrame extends JFrame implements ActionListener {
 
 	// Instances
 	private LogDAO lDao;
+	private Log log;
 
 	// SWING
 	private JLabel lblAddTitle, lblAddText, lblAddDate;
@@ -47,14 +53,16 @@ public class MainFrame extends JFrame implements ActionListener {
 			jpTableTabButtons;
 	private JTable tblLogs;
 	private JScrollPane spTableScroll;
-	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView;
+	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView, btnAdd;
 	private JTextField tfLogTitle;
 	private JTextArea taLogText;
 	private JComboBox combDate;
+	
 
 	public MainFrame() {
 
 		this.lDao = new LogDAO();
+		this.log = new Log();
 
 		// combo boxes
 		this.combDate = new JComboBox(this.getDates());
@@ -71,6 +79,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnDelete = new JButton("Delete");
 		this.btnEdit = new JButton("Edit");
 		this.btnView = new JButton("View");
+		this.btnAdd = new JButton("Add");
 
 		// text fields
 		this.tfLogTitle = new JTextField(15);
@@ -171,6 +180,11 @@ public class MainFrame extends JFrame implements ActionListener {
 		gbcAddNew.gridx = 1;
 		gbcAddNew.gridy = 2;
 		this.jpNew.add(this.combDate, gbcAddNew);
+		
+		gbcAddNew.gridx = 0;
+		gbcAddNew.gridy = 3;
+		gbcAddNew.gridwidth = 2;
+		this.jpNew.add(this.btnAdd, gbcAddNew);
 
 		// tabs
 		this.tpMain = new JTabbedPane();
@@ -226,6 +240,8 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// listeners
 		this.btnRefresh.addActionListener(this);
+		this.btnAddNew.addActionListener(this);
+		this.btnAdd.addActionListener(this);
 
 		// disabling all components if user is not connected
 		this.setComponentsEnabled(false);
@@ -246,11 +262,20 @@ public class MainFrame extends JFrame implements ActionListener {
 			} catch (SQLException e) {
 				System.out.println(e);
 			}
+		} else if (ae.getSource() == this.btnAddNew) { // go to add new tab
+			MainFrame.this.tpMain.setSelectedComponent(MainFrame.this.jpNew);
+		} else if (ae.getSource() == this.btnAdd) { // go to add new tab
+			try {
+				MainFrame.this.checkForAddNew();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public void refreshTable() throws SQLException {
 		this.tblLogs.setModel(this.lDao.getDataSet());
+		this.tblLogs.removeColumn(this.tblLogs.getColumnModel().getColumn(0)); // hiding the ID column
 		System.out.println("Refreshed");
 	}
 
@@ -291,5 +316,34 @@ public class MainFrame extends JFrame implements ActionListener {
 		};
 		verticalBar.addAdjustmentListener(downScroller);
 	}
+	
+	private void checkForAddNew() throws Exception {
+		if(this.tfLogTitle.getText().isEmpty()|| this.taLogText.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(this, "You have to fill in all the fields!", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			this.log.setTitle(this.tfLogTitle.getText());
+			this.log.setText(this.taLogText.getText());
+			this.log.setDatum(this.getDate());
+			System.out.println(this.log);
+			
+			this.lDao.addLog(this.log);
+		}
+	}
 
+	private Date getDate() {
+		Calendar cal = Calendar.getInstance();
+		if(this.combDate.getSelectedIndex() == 0) { // date selected - today
+			cal.add(Calendar.DATE, 0);
+			return cal.getTime();
+		} else if (this.combDate.getSelectedIndex() == 1) { // date selected - yesterday
+			cal.add(Calendar.DATE, -1);
+			return cal.getTime();
+		} else if (MainFrame.this.combDate.getSelectedIndex() == 2) { // date selected - day before yesterday
+			cal.add(Calendar.DATE, -2);
+			return cal.getTime();
+		} else {
+			return null;
+		}
+	}
+	
 }
