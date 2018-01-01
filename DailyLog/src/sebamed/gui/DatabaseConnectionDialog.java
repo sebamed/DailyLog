@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import sebamed.entity.Database;
@@ -49,7 +50,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 	private PropertiesFile pFile;
 	
 	// bool
-	boolean moreOptions = false, showPassword = false, makeNewDb = false, makeNewTable = false, saveSettings = false;
+	boolean moreOptions = false, showPassword = false, makeNewDb = false, makeNewTable = false, saveSettings = false, connected = false;
 
 	public DatabaseConnectionDialog(JFrame parent, String title) {
 
@@ -86,11 +87,11 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		this.passFieldDbPassword = new JPasswordField(15);
 
 		// labels
-		this.labelServerAdress = new JLabel("Server adress:");
-		this.labelServerPort = new JLabel("Server port:");
-		this.labelDbName = new JLabel("Database name:");
-		this.labelDbUser = new JLabel("Authentication username:");
-		this.labelDbPassword = new JLabel("Authentication password:");
+		this.labelServerAdress = new JLabel("Server adress:", SwingConstants.RIGHT);
+		this.labelServerPort = new JLabel("Server port:", SwingConstants.RIGHT);
+		this.labelDbName = new JLabel("Database name:", SwingConstants.RIGHT);
+		this.labelDbUser = new JLabel("Authentication username:", SwingConstants.RIGHT);
+		this.labelDbPassword = new JLabel("Authentication password:", SwingConstants.RIGHT);
 		this.labelShowAdvancedOptions = new JLabel("Show advanced options " + '\u25BC'); // 'BLACK DOWN-POINTING TRIANGLE' (U+25BC)
 
 		// buttons
@@ -313,7 +314,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
 		this.setVisible(true);
 		this.pack();
-		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		this.setResizable(false);
 
@@ -325,7 +326,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 		if (ae.getSource() == this.buttonConnect) { // click on connect button
 			if (this.textFieldServerAdress.getText().equals("") || this.textFieldServerPort.getText().equals("")
 					|| this.textFieldDbName.getText().equals("") || this.textFieldDbUser.getText().equals("")
-					|| this.passFieldDbPassword.getPassword().toString().equals("")) {
+					|| new String(this.passFieldDbPassword.getPassword()).equals("")) {
 				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "You have to fill in all the fields!", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			} else {
@@ -368,6 +369,8 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 				this.establishConnection(this.textFieldServerAdress.getText(), this.textFieldServerPort.getText(),
 						this.textFieldDbName.getText(), this.textFieldDbUser.getText(),
 						new String(this.passFieldDbPassword.getPassword()));
+				
+				this.setConnected(true);
 
 				this.dispose(); // closing the dialog
 
@@ -411,6 +414,14 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 	private void establishConnection(String serverAdress, String serverPort, String dbName, String username,
 			String pass) {
 		DbConnection.setConnection(serverAdress, serverPort, dbName, username, pass);
+	}
+	
+	public boolean isConnected() {
+		return this.connected;
+	}
+	
+	private void setConnected(boolean connected) {
+		this.connected = connected;
 	}
 
 }
