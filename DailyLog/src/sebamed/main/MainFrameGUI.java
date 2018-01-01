@@ -1,8 +1,9 @@
 package sebamed.main;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.sql.SQLException;
 
 import sebamed.gui.DatabaseConnectionDialog;
@@ -10,9 +11,11 @@ import sebamed.gui.MainFrame;
 
 public class MainFrameGUI {
 
+	
+	
 	public MainFrameGUI() {
 		MainFrame mframe = new MainFrame();
-
+		mframe.setTitle("Daily Log Application");
 		DatabaseConnectionDialog dbcDialog = new DatabaseConnectionDialog(mframe, "MySql Connection");
 
 		// Listening to window close (it will close once user is connected to a
@@ -29,11 +32,14 @@ public class MainFrameGUI {
 						// TODO Auto-generated catch block
 						System.out.println(e1);
 					}
+				} else {
+					mframe.enableMenu(true);
 				}
 
 				System.out.println("MainFrameGUI: Closed");
 			}
 		});
+	
 	}
 
 }

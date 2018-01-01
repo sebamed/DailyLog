@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -23,6 +22,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -39,6 +41,8 @@ import javax.swing.event.ChangeListener;
 
 import sebamed.dao.LogDAO;
 import sebamed.entity.Log;
+import sebamed.main.DbConnection;
+import sebamed.main.MainFrameGUI;
 
 public class MainFrame extends JFrame implements ActionListener {
 
@@ -47,22 +51,72 @@ public class MainFrame extends JFrame implements ActionListener {
 	private Log log;
 
 	// SWING
+	private JMenuBar mbMain;
+	private JMenu mFile, mEdit;
+	public JMenuItem miFConnect, miFExit, miEClearBase;
 	private JLabel lblAddTitle, lblAddText, lblAddDate;
 	private JTabbedPane tpMain;
 	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jAddNewTab, jpTableTab,
 			jpTableTabButtons;
 	private JTable tblLogs;
-	private JScrollPane spTableScroll;
+	private JScrollPane spTableScroll, spTextArea;
 	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView, btnAdd;
 	private JTextField tfLogTitle;
 	private JTextArea taLogText;
-	private JComboBox combDate;
+	private JComboBox<String> combDate;
 	
 
 	public MainFrame() {
 
 		this.lDao = new LogDAO();
 		this.log = new Log();
+		
+		// menu item	
+		this.miFConnect = new JMenuItem("Connect");
+		
+		this.miFExit = new JMenuItem("Exit");
+		this.miFExit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				if(DbConnection.getConnection()!=null) {
+					DbConnection.closeConnection();
+				}
+				MainFrame.this.dispose();
+			}
+		});
+		
+		this.miEClearBase = new JMenuItem("Clear data in base");
+		this.miEClearBase.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) { // logic for delete whole base
+				
+				int response = JOptionPane.showConfirmDialog(MainFrame.this, "Are you sure you want to clear your whole base? There is no undo!", "Warning", JOptionPane.YES_NO_OPTION);
+				if(response == JOptionPane.NO_OPTION) {
+					return; 
+				} else {
+					try {
+						MainFrame.this.lDao.clearBase();
+						MainFrame.this.refreshTable();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					
+				}
+			}
+		});
+		
+		// menu
+		this.mEdit = new JMenu("Edit");
+		this.mEdit.add(this.miEClearBase);
+		
+		this.mFile = new JMenu("File");
+		this.mFile.add(this.miFConnect);
+		this.mFile.add(this.miFExit);
+		
+		// menu bar
+		this.mbMain = new JMenuBar();
+		this.mbMain.add(this.mFile);
+		this.mbMain.add(this.mEdit);
 
 		// combo boxes
 		this.combDate = new JComboBox(this.getDates());
@@ -83,7 +137,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// text fields
 		this.tfLogTitle = new JTextField(15);
-		this.taLogText = new JTextArea(5, 15);
+		this.taLogText = new JTextArea(7, 20);
 
 		// Main panels
 		this.jpDataView = new JPanel();
@@ -95,6 +149,9 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpInfoView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpInfoView.setBackground(Color.BLUE);
 		this.jpInfoView.setLayout(new BoxLayout(this.jpInfoView, BoxLayout.Y_AXIS));
+		
+		// scrollable
+		this.spTextArea = new JScrollPane(this.taLogText);
 
 		this.tblLogs = new JTable() {
 			private static final long serialVersionUID = 1L;
@@ -171,7 +228,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		gbcAddNew.gridx = 1;
 		gbcAddNew.gridy = 1;
-		this.jpNew.add(this.taLogText, gbcAddNew);
+		this.jpNew.add(this.spTextArea, gbcAddNew);
 
 		gbcAddNew.gridx = 0;
 		gbcAddNew.gridy = 2;
@@ -202,7 +259,6 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		});
 
-		// scrollable
 		this.spTableScroll = new JScrollPane(this.tblLogs);
 
 		// tab 1
@@ -245,7 +301,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// disabling all components if user is not connected
 		this.setComponentsEnabled(false);
-
+		this.setJMenuBar(this.mbMain);
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.X_AXIS));
 		this.setVisible(true);
 		this.pack();
@@ -290,6 +346,13 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnView.setEnabled(enabled);
 		this.btnEdit.setEnabled(enabled);
 		this.btnDelete.setEnabled(enabled);
+		
+		// menu items
+		this.miEClearBase.setEnabled(enabled);
+		
+		// menu
+		this.enableMenu(enabled);
+		
 	}
 
 	private String[] getDates() {
@@ -328,6 +391,11 @@ public class MainFrame extends JFrame implements ActionListener {
 			
 			this.lDao.addLog(this.log);
 		}
+	}
+	
+	public void enableMenu(boolean enabled) {
+		this.mFile.setEnabled(enabled);
+		this.mEdit.setEnabled(enabled);
 	}
 
 	private Date getDate() {

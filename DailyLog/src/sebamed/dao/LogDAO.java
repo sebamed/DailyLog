@@ -40,6 +40,17 @@ public class LogDAO {
 		
 	}
 	
+	public void clearBase() throws SQLException {
+		
+		this.query = "truncate table logs";
+		
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
+		
+		System.out.println("Sve izbrisano!");
+		
+	}
+	
 	public DefaultTableModel getDataSet() throws SQLException {
 		String query = "select * from logs";
 		Statement st = DbConnection.getConnection().createStatement();

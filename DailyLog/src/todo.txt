@@ -4,3 +4,5 @@
 - prikazi password opcija - uradjena
 - glavni frame - poceo
 - dodaj klasu sa JOptionPane preset-ima
+- file -> connect
+- mainframe title => ako je konektovan na server da bude adresa:port - Daily Log Application
