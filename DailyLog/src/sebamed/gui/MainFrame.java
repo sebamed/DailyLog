@@ -45,24 +45,28 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import sebamed.dao.LogDAO;
+import sebamed.entity.Database;
 import sebamed.entity.Log;
+import sebamed.main.Borders;
 import sebamed.main.DbConnection;
 import sebamed.main.PropertiesFile;
 
 public class MainFrame extends JFrame implements ActionListener {
 
 	// Instances
+	private Database db;
 	private LogDAO lDao;
 	private Log log;
 	private PropertiesFile propFile;
-	
+
 	private static String[] logInfo = new String[6];
-	
+
 	// SWING
 	private JMenuBar mbMain;
 	private JMenu mFile, mEdit;
 	public JMenuItem miFConnect, miFExit, miEClearBase;
-	private JLabel lblAddTitle, lblAddText, lblAddDate, lblServer, lblServerName, lblUser, lblUserName, lblDayCount, lblDaysCounted, lblLastLogin, lblLastLoggedIn;
+	private JLabel lblAddTitle, lblAddText, lblAddDate, lblServer, lblServerName, lblUser, lblUserName, lblDayCount,
+			lblDaysCounted, lblLastLogin, lblLastLoggedIn, lblDb, lblDbName, lblPort, lblDbPort;
 	private JTabbedPane tpMain;
 	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jAddNewTab, jpTableTab,
 			jpTableTabButtons, jpAboutServer, jpTodoTable;
@@ -72,36 +76,38 @@ public class MainFrame extends JFrame implements ActionListener {
 	private JTextField tfLogTitle;
 	private JTextArea taLogText;
 	private JComboBox<String> combDate;
-	
 
 	public MainFrame() {
 
+		this.db = new Database();
 		this.propFile = new PropertiesFile();
 		this.lDao = new LogDAO();
 		this.log = new Log();
-		
-		// menu item	
+
+		// menu item
 		this.miFConnect = new JMenuItem("Connect");
-		
+
 		this.miFExit = new JMenuItem("Exit");
 		this.miFExit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				if(DbConnection.getConnection()!=null) { // closing the connection
+				if (DbConnection.getConnection() != null) { // closing the connection
 					DbConnection.closeConnection();
 				}
 				MainFrame.this.dispose();
 			}
 		});
-		
+
 		this.miEClearBase = new JMenuItem("Clear data in base");
 		this.miEClearBase.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) { // logic for delete whole base
-				
-				int response = JOptionPane.showConfirmDialog(MainFrame.this, "Are you sure you want to clear your whole base? There is no undo!", "Warning", JOptionPane.YES_NO_OPTION);
-				if(response == JOptionPane.NO_OPTION) {
-					return; 
+
+				int response = JOptionPane.showConfirmDialog(MainFrame.this,
+						"Are you sure you want to clear your whole base? There is no undo!", "Warning",
+						JOptionPane.YES_NO_OPTION);
+				if (response == JOptionPane.NO_OPTION) {
+					return;
 				} else {
 					try {
 						MainFrame.this.lDao.clearBase();
@@ -109,19 +115,19 @@ public class MainFrame extends JFrame implements ActionListener {
 					} catch (SQLException e) {
 						e.printStackTrace();
 					}
-					
+
 				}
 			}
 		});
-		
+
 		// menu
 		this.mEdit = new JMenu("Edit");
 		this.mEdit.add(this.miEClearBase);
-		
+
 		this.mFile = new JMenu("File");
 		this.mFile.add(this.miFConnect);
 		this.mFile.add(this.miFExit);
-		
+
 		// menu bar
 		this.mbMain = new JMenuBar();
 		this.mbMain.add(this.mFile);
@@ -132,6 +138,10 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.combDate.setSelectedItem(this.combDate.getItemAt(0));
 
 		// labels
+		this.lblPort = new JLabel("Server port:", SwingConstants.RIGHT);
+		this.lblDbPort = new JLabel("", SwingConstants.LEFT);
+		this.lblDb = new JLabel("Database:", SwingConstants.RIGHT);
+		this.lblDbName = new JLabel("", SwingConstants.LEFT);
 		this.lblLastLogin = new JLabel("Last login:", SwingConstants.RIGHT);
 		this.lblLastLoggedIn = new JLabel("", SwingConstants.LEFT);
 		this.lblDayCount = new JLabel("Days:", SwingConstants.RIGHT);
@@ -140,7 +150,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.lblServerName = new JLabel("", SwingConstants.LEFT);
 		this.lblUser = new JLabel("Username:", SwingConstants.RIGHT);
 		this.lblUserName = new JLabel("", SwingConstants.LEFT);
-		
+
 		this.lblAddTitle = new JLabel("Log title:", SwingConstants.RIGHT);
 		this.lblAddText = new JLabel("Log text:", SwingConstants.RIGHT);
 		this.lblAddDate = new JLabel("Choose date:", SwingConstants.RIGHT);
@@ -167,9 +177,10 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpInfoView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpInfoView.setBackground(Color.BLUE);
 		this.jpInfoView.setLayout(new BoxLayout(this.jpInfoView, BoxLayout.Y_AXIS));
-		
+
 		// scrollable
-		this.spTextArea = new JScrollPane(this.taLogText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		this.spTextArea = new JScrollPane(this.taLogText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
 		this.tblLogs = new JTable() {
 			private static final long serialVersionUID = 1L;
@@ -187,7 +198,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.tblLogs.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent me) {
-				if(me.getClickCount() == 2) {
+				if (me.getClickCount() == 2) {
 					MainFrame.this.viewLog();
 				}
 			}
@@ -264,7 +275,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		gbcAddNew.gridx = 1;
 		gbcAddNew.gridy = 2;
 		this.jpNew.add(this.combDate, gbcAddNew);
-		
+
 		gbcAddNew.gridx = 0;
 		gbcAddNew.gridy = 3;
 		gbcAddNew.gridwidth = 2;
@@ -291,18 +302,17 @@ public class MainFrame extends JFrame implements ActionListener {
 		// tab 1
 		this.jpTableTab.add(this.spTableScroll);
 		this.jpTableTab.add(this.jpTableTabButtons);
-		
+
 		// Info layout panel
-		
-		// todo info 
+
+		// todo info
 		this.jpTodoTable = new JPanel();
 		this.jpTodoTable.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpTodoTable.setBackground(Color.RED);
 		GridBagConstraints gbcToDo = new GridBagConstraints();
 		gbcToDo.fill = GridBagConstraints.HORIZONTAL;
 		gbcToDo.insets = new Insets(3, 5, 5, 3);
-		
-		
+
 		// todo panel
 		this.jpToDo = new JPanel();
 		this.jpToDo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -311,52 +321,68 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// server about panel
 		this.jpAboutServer = new JPanel();
-		this.jpAboutServer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpAboutServer.setBackground(Color.YELLOW);
+		this.jpAboutServer.setBorder(Borders.combineBorders("Server info", 10));
+		// this.jpAboutServer.setBackground(Color.YELLOW);
 		this.jpAboutServer.setLayout(new GridBagLayout());
 		GridBagConstraints gbcServerInfo = new GridBagConstraints();
 		gbcServerInfo.fill = GridBagConstraints.HORIZONTAL;
-		gbcServerInfo.insets = new Insets(3, 5, 3, 5);
-		
+		gbcServerInfo.insets = new Insets(5, 5, 5, 5);
+
 		gbcServerInfo.gridx = 0;
-		gbcServerInfo.gridy = 0;		
+		gbcServerInfo.gridy = 0;
 		this.jpAboutServer.add(this.lblServer, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 1;
-		gbcServerInfo.gridy = 0;		
+		gbcServerInfo.gridy = 0;
 		this.jpAboutServer.add(this.lblServerName, gbcServerInfo);
 		
 		gbcServerInfo.gridx = 0;
-		gbcServerInfo.gridy = 1;		
+		gbcServerInfo.gridy = 2;
+		this.jpAboutServer.add(this.lblPort, gbcServerInfo);
+
+		gbcServerInfo.gridx = 1;
+		gbcServerInfo.gridy = 2;
+		this.jpAboutServer.add(this.lblDbPort, gbcServerInfo);
+		
+		gbcServerInfo.gridx = 0;
+		gbcServerInfo.gridy = 3;
+		this.jpAboutServer.add(this.lblDb, gbcServerInfo);
+
+		gbcServerInfo.gridx = 1;
+		gbcServerInfo.gridy = 3;
+		this.jpAboutServer.add(this.lblDbName, gbcServerInfo);
+
+		gbcServerInfo.gridx = 0;
+		gbcServerInfo.gridy = 4;
 		this.jpAboutServer.add(this.lblUser, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 1;
-		gbcServerInfo.gridy = 1;		
+		gbcServerInfo.gridy = 4;
 		this.jpAboutServer.add(this.lblUserName, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 0;
-		gbcServerInfo.gridy = 2;		
+		gbcServerInfo.gridy = 5;
 		this.jpAboutServer.add(this.lblDayCount, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 1;
-		gbcServerInfo.gridy = 2;		
+		gbcServerInfo.gridy = 5;
 		this.jpAboutServer.add(this.lblDaysCounted, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 0;
-		gbcServerInfo.gridy = 3;
+		gbcServerInfo.gridy = 6;
 		this.jpAboutServer.add(this.lblLastLogin, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 1;
-		gbcServerInfo.gridy = 3;
+		gbcServerInfo.gridy = 6;
 		this.jpAboutServer.add(this.lblLastLoggedIn, gbcServerInfo);
-		
+
 		// server info panel
 		this.jpServerInfo = new JPanel();
 		this.jpServerInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpServerInfo.setBackground(Color.CYAN);
-		this.jpServerInfo.setLayout(new GridLayout(2, 1));
+//		this.jpServerInfo.setLayout(new GridLayout(1,1));
 		this.jpServerInfo.add(this.jpAboutServer);
-		
+
 		// show all
 		// table
 		this.jpTable.add(this.tpMain);
@@ -430,13 +456,13 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnView.setEnabled(enabled);
 		this.btnEdit.setEnabled(enabled);
 		this.btnDelete.setEnabled(enabled);
-		
+
 		// menu items
 		this.miEClearBase.setEnabled(enabled);
-		
+
 		// menu
 		this.enableMenu(enabled);
-		
+
 	}
 
 	private String[] getDates() {
@@ -463,20 +489,21 @@ public class MainFrame extends JFrame implements ActionListener {
 		};
 		verticalBar.addAdjustmentListener(downScroller);
 	}
-	
+
 	private void checkForAddNew() throws Exception {
-		if(this.tfLogTitle.getText().isEmpty()|| this.taLogText.getText().isEmpty()) {
-			JOptionPane.showMessageDialog(this, "You have to fill in all the fields!", "Error", JOptionPane.ERROR_MESSAGE);
+		if (this.tfLogTitle.getText().isEmpty() || this.taLogText.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(this, "You have to fill in all the fields!", "Error",
+					JOptionPane.ERROR_MESSAGE);
 		} else {
 			this.log.setTitle(this.tfLogTitle.getText());
 			this.log.setText(this.taLogText.getText());
 			this.log.setDatum(this.getDate());
 			System.out.println(this.log);
-			
+
 			this.lDao.addLog(this.log);
 		}
 	}
-	
+
 	public void enableMenu(boolean enabled) {
 		this.mFile.setEnabled(enabled);
 		this.mEdit.setEnabled(enabled);
@@ -484,7 +511,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	private Date getDate() {
 		Calendar cal = Calendar.getInstance();
-		if(this.combDate.getSelectedIndex() == 0) { // date selected - today
+		if (this.combDate.getSelectedIndex() == 0) { // date selected - today
 			cal.add(Calendar.DATE, 0);
 			return cal.getTime();
 		} else if (this.combDate.getSelectedIndex() == 1) { // date selected - yesterday
@@ -497,9 +524,9 @@ public class MainFrame extends JFrame implements ActionListener {
 			return null;
 		}
 	}
-	
+
 	private void viewLog() {
-		if(this.tblLogs.getSelectionModel().isSelectionEmpty()) { // no selected rows
+		if (this.tblLogs.getSelectionModel().isSelectionEmpty()) { // no selected rows
 			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
 		} else {
 			this.logInfo[0] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 0).toString(); // id
@@ -509,12 +536,12 @@ public class MainFrame extends JFrame implements ActionListener {
 			this.logInfo[4] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 4).toString(); // day
 			this.logInfo[5] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 5).toString(); // time
 
-			for(String a : this.logInfo) {
+			for (String a : this.logInfo) {
 				System.out.println(a);
 			}
-			
+
 			LogInfoDialog liDialog = new LogInfoDialog(this, logInfo[1] + " - " + logInfo[3]);
-			
+
 			liDialog.addWindowFocusListener(new WindowFocusListener() {
 				public void windowGainedFocus(WindowEvent e) {
 
@@ -526,17 +553,19 @@ public class MainFrame extends JFrame implements ActionListener {
 			});
 		}
 	}
-	
+
 	public void getDatabaseMeta() throws Exception {
-		DatabaseMetaData dbMd = DbConnection.getDatabaseMetaData();
-		this.lblServerName.setText(dbMd.getUserName().split("@")[1]); // getUserName: user@adress
-		this.lblUserName.setText(dbMd.getUserName().split("@")[0]); 
+		this.db = this.propFile.fetchDbFromFile();
+		this.lblServerName.setText(this.db.getDbAdress());
+		this.lblDbPort.setText(this.db.getDbPort());
+		this.lblDbName.setText(this.db.getDbName());
+		this.lblUserName.setText(this.db.getDbUsername());
 		this.lblDaysCounted.setText(this.tblLogs.getRowCount() + "");
 		this.lblLastLoggedIn.setText(this.propFile.getLastLogin());
 		this.pack();
 	}
-	
+
 	public static String[] getLogInfo() {
 		return logInfo;
-	}	
+	}
 }

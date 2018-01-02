@@ -401,7 +401,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 			this.textFieldServerAdress.setText(newDb.getDbAdress());
 			this.textFieldServerPort.setText(newDb.getDbPort());
 			this.textFieldDbName.setText(newDb.getDbName());
-			this.textFieldDbUser.setText(newDb.getDbUsername());
+			this.textFieldDbUser.setText(newDb.getDbUsername());		
 		} else {
 			return;
 		}
