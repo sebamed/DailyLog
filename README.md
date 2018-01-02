@@ -12,6 +12,9 @@ Requirements for running the app:
 - Adding new logs, tasks and removing them
 - Automatic database modeling (not fully working, yet)
 
+# Future todos:
+- Add decent database manipulation options
+
 # MORE DOCUMENTATION SOON
 
 
