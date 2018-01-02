@@ -6,3 +6,5 @@
 - dodaj klasu sa JOptionPane preset-ima
 - file -> connect
 - mainframe title => ako je konektovan na server da bude adresa:port - Daily Log Application
+- tabela boje - odd even
+- umesto combo box staviti date picker?

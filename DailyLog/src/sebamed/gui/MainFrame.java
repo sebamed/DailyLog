@@ -6,10 +6,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -42,13 +45,14 @@ import javax.swing.event.ChangeListener;
 import sebamed.dao.LogDAO;
 import sebamed.entity.Log;
 import sebamed.main.DbConnection;
-import sebamed.main.MainFrameGUI;
 
 public class MainFrame extends JFrame implements ActionListener {
 
 	// Instances
 	private LogDAO lDao;
 	private Log log;
+	
+	private static String[] logInfo = new String[6];
 
 	// SWING
 	private JMenuBar mbMain;
@@ -78,7 +82,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.miFExit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				if(DbConnection.getConnection()!=null) {
+				if(DbConnection.getConnection()!=null) { // closing the connection
 					DbConnection.closeConnection();
 				}
 				MainFrame.this.dispose();
@@ -151,7 +155,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpInfoView.setLayout(new BoxLayout(this.jpInfoView, BoxLayout.Y_AXIS));
 		
 		// scrollable
-		this.spTextArea = new JScrollPane(this.taLogText);
+		this.spTextArea = new JScrollPane(this.taLogText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
 		this.tblLogs = new JTable() {
 			private static final long serialVersionUID = 1L;
@@ -298,6 +302,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnRefresh.addActionListener(this);
 		this.btnAddNew.addActionListener(this);
 		this.btnAdd.addActionListener(this);
+		this.btnView.addActionListener(this);
 
 		// disabling all components if user is not connected
 		this.setComponentsEnabled(false);
@@ -326,6 +331,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		} else if (ae.getSource() == this.btnView) { // open dialog with log info
+			this.viewLog();
 		}
 	}
 
@@ -414,4 +421,36 @@ public class MainFrame extends JFrame implements ActionListener {
 		}
 	}
 	
+	private void viewLog() {
+		if(this.tblLogs.getSelectionModel().isSelectionEmpty()) { // no selected rows
+			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			this.logInfo[0] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 0).toString(); // id
+			this.logInfo[1] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 1).toString(); // title
+			this.logInfo[2] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 2).toString(); // text
+			this.logInfo[3] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 3).toString(); // date
+			this.logInfo[4] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 4).toString(); // day
+			this.logInfo[5] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 5).toString(); // time
+
+			for(String a : this.logInfo) {
+				System.out.println(a);
+			}
+			
+			LogInfoDialog liDialog = new LogInfoDialog(this, logInfo[1] + " - " + logInfo[3]);
+			
+			liDialog.addWindowFocusListener(new WindowFocusListener() {
+				public void windowGainedFocus(WindowEvent e) {
+
+				}
+
+				public void windowLostFocus(WindowEvent we) { // dispose on click somewhere else than liDialog
+					liDialog.dispose();
+				}
+			});
+		}
+	}
+	
+	public static String[] getLogInfo() {
+		return logInfo;
+	}	
 }
