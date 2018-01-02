@@ -757,7 +757,7 @@ public class MainFrame extends JFrame implements ActionListener {
 				return;
 			} else {
 				this.tDao.removeTask(taskID);
-				JOptionPane.showMessageDialog(this, "Successfully deleted", "Success",
+				JOptionPane.showMessageDialog(this, "Successfully deleted!", "Success",
 						JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
