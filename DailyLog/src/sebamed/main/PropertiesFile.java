@@ -71,6 +71,18 @@ public class PropertiesFile {
 		}
 	}
 	
+	public String getLastLogin() throws IOException {
+		InputStream is = new FileInputStream(this.location);
+		this.prop.load(is);
+		if(this.prop.getProperty("last_open") != null) {
+			is.close();
+			return this.prop.getProperty("last_open");
+		} else {
+			is.close();
+			return null;
+		}
+	}
+	
 	private void createFile() throws IOException {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		Date date = new Date();

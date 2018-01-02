@@ -31,4 +31,8 @@ public class DbConnection {
 		}
 	}
 	
+	public static DatabaseMetaData getDatabaseMetaData() throws Exception {
+		return conn.getMetaData();
+	}
+	
 }

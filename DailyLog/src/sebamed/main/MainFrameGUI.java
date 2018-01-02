@@ -40,7 +40,8 @@ public class MainFrameGUI {
 						mframe.setComponentsEnabled(true);
 						mframe.refreshTable();
 						mframe.allwaysOnBottom();
-					} catch (SQLException e1) {
+						mframe.getDatabaseMeta();
+					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						System.out.println(e1);
 					}

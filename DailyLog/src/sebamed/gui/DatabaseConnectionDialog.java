@@ -356,7 +356,7 @@ public class DatabaseConnectionDialog extends JDialog implements ActionListener 
 				}
 				System.out.println("DatabaseConnection.class: Zatvorena konekcija!");
 
-				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "Success!", "Success", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(DatabaseConnectionDialog.this, "Successfully connected to database!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
 				try {
 					this.checkForCheckBoxes();
