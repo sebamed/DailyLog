@@ -14,23 +14,30 @@ import sebamed.main.DbConnection;
 public class TaskDAO {
 
 	private String query = "";
-	
-	public TaskDAO() {
-		
-	}
-	
-	public void addTask(Task task) throws SQLException {
-		
-		this.query = "insert into tasks(TaskName, TaskPriority) values('" + task.getName() + "', '" + task.getPriority() + "')";
-		
-		Statement st = DbConnection.getConnection().createStatement();
-		st.executeQuery(this.query);
-		
 
-		
+	public TaskDAO() {
+
+	}
+
+	public void addTask(Task task) throws SQLException {
+		this.query = "insert into tasks(TaskName, TaskPriority) values('" + task.getName() + "', '" + task.getPriority()
+				+ "')";
+
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
+
 		System.out.println("Dodat task: " + task);
 	}
-	
+
+	public void clearBase() throws SQLException {
+		this.query = "truncate table tasks";
+
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
+
+		System.out.println("Sve izbrisano!");
+	}
+
 	public DefaultTableModel getTasks() throws SQLException {
 		String query = "select * from tasks";
 		Statement st = DbConnection.getConnection().createStatement();
@@ -38,16 +45,16 @@ public class TaskDAO {
 
 		return buildTableModel(rs);
 	}
-	
-	private static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
 
+	private static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
 		ResultSetMetaData metaData = rs.getMetaData();
 
 		// names of columns
 		Vector<String> columnNames = new Vector<String>();
 		int columnCount = metaData.getColumnCount();
 		for (int column = 1; column <= columnCount; column++) {
-			columnNames.add(metaData.getColumnName(column).substring(4)); // Column names start with Task prefix, removing them
+			columnNames.add(metaData.getColumnName(column).substring(4)); // Column names start with Task prefix,
+																			// removing them
 		}
 
 		// data of the table
@@ -61,7 +68,6 @@ public class TaskDAO {
 		}
 
 		return new DefaultTableModel(data, columnNames);
-
 	}
-	
+
 }

@@ -13,6 +13,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.sql.SQLException;
@@ -44,7 +45,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
-import javax.swing.text.TableView.TableCell;
 
 import sebamed.dao.LogDAO;
 import sebamed.dao.TaskDAO;
@@ -68,12 +68,12 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	// SWING
 	private JMenuBar mbMain;
-	private JMenu mFile, mEdit;
-	public JMenuItem miFConnect, miFExit, miEClearBase;
+	private JMenu mFile, mEdit, mClear;
+	public JMenuItem miFConnect, miFExit, miEClearBase, miEClearTasks;
 	private JLabel lblAddTitle, lblAddText, lblAddDate, lblServer, lblServerName, lblUser, lblUserName, lblDayCount,
 			lblDaysCounted, lblLastLogin, lblLastLoggedIn, lblDb, lblDbName, lblPort, lblDbPort;
 	private JTabbedPane tpMain;
-	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jAddNewTab, jpTableTab,
+	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jpTableTab,
 			jpTableTabButtons, jpAboutServer, jpTodoTable, jpTodoButtons;
 	private JTable tblLogs, tblTodo;
 	private JScrollPane spTableScroll, spTextArea, spTodo;
@@ -90,6 +90,9 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.lDao = new LogDAO();
 		this.log = new Log();
 
+		// menus
+		this.mClear = new JMenu("Clear");
+		
 		// menu item
 		this.miFConnect = new JMenuItem("Connect");
 
@@ -103,8 +106,28 @@ public class MainFrame extends JFrame implements ActionListener {
 				MainFrame.this.dispose();
 			}
 		});
+		
+		this.miEClearTasks = new JMenuItem("Clear all tasks");
+		this.miEClearTasks.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				int response = JOptionPane.showConfirmDialog(MainFrame.this,
+						"Are you sure you want to clear your whole base of tasks? There is no undo!", "Warning",
+						JOptionPane.YES_NO_OPTION);
+				if (response == JOptionPane.NO_OPTION) {
+					return;
+				} else {
+					try {
+						MainFrame.this.tDao.clearBase();
+						MainFrame.this.refreshTodo();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
 
-		this.miEClearBase = new JMenuItem("Clear data in base");
+		this.miEClearBase = new JMenuItem("Clear all logs");
 		this.miEClearBase.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) { // logic for delete whole base
@@ -128,7 +151,9 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// menu
 		this.mEdit = new JMenu("Edit");
-		this.mEdit.add(this.miEClearBase);
+		this.mEdit.add(this.mClear);
+		this.mClear.add(this.miEClearBase);
+		this.mClear.add(this.miEClearTasks);
 
 		this.mFile = new JMenu("File");
 		this.mFile.add(this.miFConnect);
@@ -459,6 +484,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnAddNew.addActionListener(this);
 		this.btnAdd.addActionListener(this);
 		this.btnView.addActionListener(this);
+		this.btnAddTodo.addActionListener(this);
 
 		// disabling all components if user is not connected
 		this.setComponentsEnabled(false);
@@ -466,7 +492,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.X_AXIS));
 		this.setVisible(true);
 		this.pack();
-		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		// this.setResizable(false);
 	}
@@ -489,6 +515,27 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		} else if (ae.getSource() == this.btnView) { // open dialog with log info
 			this.viewLog();
+		} else if (ae.getSource() == this.btnAddTodo) { // open dialog that adds todo
+			 TodoAddDialog taDialog = new TodoAddDialog(this, "Add new task");
+			 taDialog.addWindowFocusListener(new WindowFocusListener() {
+					public void windowGainedFocus(WindowEvent e) {
+
+					}
+
+					public void windowLostFocus(WindowEvent we) { // dispose on click somewhere else than taDialog
+						taDialog.dispose();
+					}
+				});
+			 taDialog.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosed(WindowEvent we) {
+						try {
+							MainFrame.this.refreshTodo();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				});
 		}
 	}
 
@@ -496,6 +543,9 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.tblLogs.setModel(this.lDao.getDataSet());
 		this.tblLogs.removeColumn(this.tblLogs.getColumnModel().getColumn(0)); // hiding the ID column
 		this.lblDaysCounted.setText(this.tblLogs.getRowCount() + "");
+		
+		this.allwaysOnBottom(1); // scroll table to bottom
+		
 		System.out.println("Refreshed");
 	}
 
@@ -503,6 +553,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.tblTodo.setModel(this.tDao.getTasks());
 		this.tblTodo.removeColumn(this.tblTodo.getColumnModel().getColumn(0));
 		this.jpToDo.setPreferredSize(this.jpServerInfo.getPreferredSize()); // size of todo container same as server info container
+		
+		this.allwaysOnBottom(2); // scroll table to bottom
 		
 		TableColumn tblColumn = this.tblTodo.getColumnModel().getColumn(1);
 		tblColumn.setCellRenderer(new PriorityColumnCellRenderer());
@@ -521,6 +573,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnView.setEnabled(enabled);
 		this.btnEdit.setEnabled(enabled);
 		this.btnDelete.setEnabled(enabled);
+		this.btnAddTodo.setEnabled(enabled);
+		this.btnRemoveTodo.setEnabled(enabled);
 
 		// menu items
 		this.miEClearBase.setEnabled(enabled);
@@ -542,14 +596,33 @@ public class MainFrame extends JFrame implements ActionListener {
 		return days;
 	}
 
-	public void allwaysOnBottom() {
+//	public void allwaysOnBottom() {
+//		JScrollBar verticalBar = this.spTableScroll.getVerticalScrollBar();
+//		AdjustmentListener downScroller = new AdjustmentListener() {
+//			@Override
+//			public void adjustmentValueChanged(AdjustmentEvent e) {
+//				Adjustable adjustable = e.getAdjustable();
+//				adjustable.setValue(adjustable.getMaximum());
+//				verticalBar.removeAdjustmentListener(this);
+//			}
+//		};
+//		verticalBar.addAdjustmentListener(downScroller);
+//	}
+	
+	public void allwaysOnBottom(int number) {
 		JScrollBar verticalBar = this.spTableScroll.getVerticalScrollBar();
+		if(number == 1) {
+			verticalBar = this.spTableScroll.getVerticalScrollBar();
+		} else if (number == 2) {
+			verticalBar = this.spTodo.getVerticalScrollBar();
+		}
+		JScrollBar verticalBar1 = verticalBar;
 		AdjustmentListener downScroller = new AdjustmentListener() {
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
 				Adjustable adjustable = e.getAdjustable();
 				adjustable.setValue(adjustable.getMaximum());
-				verticalBar.removeAdjustmentListener(this);
+				verticalBar1.removeAdjustmentListener(this);
 			}
 		};
 		verticalBar.addAdjustmentListener(downScroller);

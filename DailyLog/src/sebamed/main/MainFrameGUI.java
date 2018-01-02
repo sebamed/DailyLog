@@ -6,13 +6,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 
+import javax.swing.JOptionPane;
+
 import sebamed.gui.DatabaseConnectionDialog;
 import sebamed.gui.MainFrame;
 
 public class MainFrameGUI {
 
-	
-	
 	public MainFrameGUI() {
 		MainFrame mframe = new MainFrame();
 		mframe.setTitle("Daily Log Application");
@@ -22,14 +22,23 @@ public class MainFrameGUI {
 		mframe.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent we) {
-				if(DbConnection.getConnection()!=null) {
-					DbConnection.closeConnection(); // closing the connection
+				int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to close the application?",
+						"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+				if (result == JOptionPane.NO_OPTION) {
+					return;
 				} else {
-					System.out.println("Closing without database connection");
+
+					if (DbConnection.getConnection() != null) {
+						DbConnection.closeConnection(); // closing the connection
+					} else {
+						System.out.println("Closing without database connection");
+					}
+					
+					System.exit(0);
 				}
 			}
 		});
-		
+
 		// Listening to window close (it will close once user is connected to a
 		// database)
 		dbcDialog.addWindowListener(new WindowAdapter() {
@@ -39,7 +48,7 @@ public class MainFrameGUI {
 					try {
 						mframe.setComponentsEnabled(true);
 						mframe.refreshTable();
-						mframe.allwaysOnBottom();
+						mframe.allwaysOnBottom(1);
 						mframe.getDatabaseMeta();
 						mframe.refreshTodo();
 					} catch (Exception e1) {
@@ -53,7 +62,7 @@ public class MainFrameGUI {
 				System.out.println("MainFrameGUI: Closed");
 			}
 		});
-	
+
 	}
 
 }
