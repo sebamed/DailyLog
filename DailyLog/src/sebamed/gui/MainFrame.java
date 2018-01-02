@@ -132,8 +132,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				int response = JOptionPane.showConfirmDialog(MainFrame.this,
-						"Are you sure you want to clear your whole base of tasks? There is no undo!", "Warning",
-						JOptionPane.YES_NO_OPTION);
+						"Are you sure you want to clear your whole base of tasks? There is no undo!", "Question",
+						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 				if (response == JOptionPane.NO_OPTION) {
 					return;
 				} else {
@@ -224,6 +224,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		// text fields
 		this.tfLogTitle = new JTextField(15);
 		this.taLogText = new JTextArea(7, 20);
+		this.taLogText.setLineWrap(true);
+		this.taLogText.setWrapStyleWord(true);
 
 		// Main panels
 		this.jpDataView = new JPanel();
@@ -505,6 +507,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpDataView.add(this.jpTable);
 
 		// listeners
+		this.btnEdit.addActionListener(this);
 		this.btnRemoveTodo.addActionListener(this);
 		this.btnDelete.addActionListener(this);
 		this.btnRefresh.addActionListener(this);
@@ -542,6 +545,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		} else if (ae.getSource() == this.btnView) { // open dialog with log info
 			this.viewLog();
+		} else if (ae.getSource() == this.btnEdit) { // open dialog that edits
+			this.editLog();
 		} else if (ae.getSource() == this.btnDelete) {
 			try {
 				this.deleteLog();
@@ -556,11 +561,10 @@ public class MainFrame extends JFrame implements ActionListener {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}
-		else if (ae.getSource() == this.btnAddTodo) { // open dialog that adds todo
+		} else if (ae.getSource() == this.btnAddTodo) { // open dialog that adds todo
 			this.taDialog = new TodoAddDialog(this, "Add new task");
 			MainFrame.this.listenToAddTask();
-		}
+		} 
 	}
 
 	public void refreshTable() throws SQLException {
@@ -708,6 +712,39 @@ public class MainFrame extends JFrame implements ActionListener {
 		}
 	}
 	
+	private void editLog() {
+		if (!this.checkIfSelected()) {
+			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			this.logInfo[0] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 0).toString(); // id
+			this.logInfo[1] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 1).toString(); // title
+			this.logInfo[2] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 2).toString(); // text
+			this.logInfo[3] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 3).toString(); // date
+			this.logInfo[4] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 4).toString(); // day
+			this.logInfo[5] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 5).toString(); // time
+			LogEditDialog leDialog = new LogEditDialog(this, "Edit " + this.logInfo[1] + " - " + this.logInfo[3]);
+			leDialog.addWindowFocusListener(new WindowFocusListener() {
+				public void windowGainedFocus(WindowEvent e) {
+
+				}
+
+				public void windowLostFocus(WindowEvent we) { // dispose on click somewhere else than taDialog
+					leDialog.dispose();
+				}
+			});
+			leDialog.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent we) {
+					try {
+						MainFrame.this.refreshTable();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+	}
+	
 	private void deleteTask() throws SQLException {
 		if (this.tblTodo.getSelectionModel().isSelectionEmpty()) { // no selected rows
 			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -715,7 +752,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			int taskID = (int) this.tblTodo.getModel().getValueAt(this.tblTodo.getSelectedRow(), 0);
 			String name = this.tblTodo.getModel().getValueAt(this.tblTodo.getSelectedRow(), 1).toString();
 			int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete task '" + name + "'?",
-					"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					"Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if (result == JOptionPane.NO_OPTION) {
 				return;
 			} else {

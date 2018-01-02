@@ -30,6 +30,14 @@ public class LogDAO {
 		System.out.println("Dodat: " + log);
 	}
 	
+	public void editLog(int id, String title, String text) throws SQLException {
+		this.query = "update logs set LogTitle = '" + title + "', LogText = '" + text + "' where LogID = " + id;
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
+		
+		System.out.println("Dodat: " + id + " " + title + " " + text);
+	}
+	
 	public void removeLog(int id) throws SQLException {
 		this.query = "delete from logs where LogID = " + id;
 		Statement st = DbConnection.getConnection().createStatement();
