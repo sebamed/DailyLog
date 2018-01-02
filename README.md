@@ -15,6 +15,12 @@ Requirements for running the app:
 # Future todos:
 - Add decent database manipulation options
 
+
+# Preview:
+
+
+![blank application](https://i.imgur.com/vc4E5i1.png)
+![populated application](https://i.imgur.com/2ctGrNG.png)
 # MORE DOCUMENTATION SOON
 
 
