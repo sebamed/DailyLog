@@ -7,6 +7,9 @@ Requirements for running the app:
 - Online MySql server
 - Java Runtime Environment  - JRE
 
+# Disclaimer
+Since this is my first desktop app, code can be kinda messy. Lot of mixed up concepts that I am not an expert in like design patterns.
+
 # Implemented functionalities:
 - Save login preset
 - Adding new logs, tasks and removing them
