@@ -1,7 +1,7 @@
 # Daily Log
 Daily log is a simple desktop app, made in Java.
 
-Main purpose of this app is personal use, logging daily achievements
+Main purpose of this app is personal usage, logging daily achievements and tracking important tasks.
 
 Requirements for running the app:
 - Online MySql server
