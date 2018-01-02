@@ -762,7 +762,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.lblDbName.setText(this.db.getDbName());
 		this.lblUserName.setText(this.db.getDbUsername());
 		this.lblDaysCounted.setText(this.tblLogs.getRowCount() + "");
-		this.lblLastLoggedIn.setText(this.propFile.getLastLogin());
+		this.lblLastLoggedIn.setText(this.propFile.getLastLoginInfo());
 		this.pack();
 	}
 

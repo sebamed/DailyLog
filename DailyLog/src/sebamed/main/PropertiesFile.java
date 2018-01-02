@@ -2,6 +2,7 @@ package sebamed.main;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,9 @@ public class PropertiesFile {
 	
 	private final String location = "database.properties";
 	private File file = new File(this.location);
+	
+	private final String location_login = "login.properties";
+	private File fileLogin = new File(this.location_login);
 	
 	private Properties prop;
 	private Database db;
@@ -71,24 +75,32 @@ public class PropertiesFile {
 		}
 	}
 	
-	public String getLastLogin() throws IOException {
-		InputStream is = new FileInputStream(this.location);
-		this.prop.load(is);
-		if(this.prop.getProperty("last_open") != null) {
-			is.close();
-			return this.prop.getProperty("last_open");
-		} else {
-			is.close();
-			return null;
-		}
-	}
-	
 	private void createFile() throws IOException {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		Date date = new Date();
 		OutputStream os = new FileOutputStream(this.location);
 		this.prop.setProperty("last_open", dateFormat.format(date));
 		os.close();
+	}
+	
+	public String getLastLoginInfo() throws IOException {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		String date = "";
+		if(this.fileLogin.exists()) {
+			InputStream is = new FileInputStream(this.location_login);
+			this.prop.load(is);
+			date = this.prop.getProperty("last_login");
+			is.close();
+			OutputStream os = new FileOutputStream(this.location_login);
+			this.prop.setProperty("last_login", dateFormat.format(new Date()));
+			this.prop.store(os, null);
+		} else { // creates file if does not exist
+			date = dateFormat.format(new Date());
+			OutputStream os = new FileOutputStream(this.location_login);
+			this.prop.setProperty("last_login", date);
+			os.close();
+		}
+		return date;
 	}
 	
 	public Database fetchDbFromFile() throws IOException {
