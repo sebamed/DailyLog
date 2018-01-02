@@ -2,6 +2,7 @@ package sebamed.gui;
 
 import java.awt.Adjustable;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -14,7 +15,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -43,17 +43,22 @@ import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.TableColumn;
+import javax.swing.text.TableView.TableCell;
 
 import sebamed.dao.LogDAO;
+import sebamed.dao.TaskDAO;
 import sebamed.entity.Database;
 import sebamed.entity.Log;
 import sebamed.main.Borders;
 import sebamed.main.DbConnection;
+import sebamed.main.PriorityColumnCellRenderer;
 import sebamed.main.PropertiesFile;
 
 public class MainFrame extends JFrame implements ActionListener {
 
 	// Instances
+	private TaskDAO tDao;
 	private Database db;
 	private LogDAO lDao;
 	private Log log;
@@ -69,16 +74,17 @@ public class MainFrame extends JFrame implements ActionListener {
 			lblDaysCounted, lblLastLogin, lblLastLoggedIn, lblDb, lblDbName, lblPort, lblDbPort;
 	private JTabbedPane tpMain;
 	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jAddNewTab, jpTableTab,
-			jpTableTabButtons, jpAboutServer, jpTodoTable;
-	private JTable tblLogs;
-	private JScrollPane spTableScroll, spTextArea;
-	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView, btnAdd;
+			jpTableTabButtons, jpAboutServer, jpTodoTable, jpTodoButtons;
+	private JTable tblLogs, tblTodo;
+	private JScrollPane spTableScroll, spTextArea, spTodo;
+	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView, btnAdd, btnAddTodo, btnRemoveTodo;
 	private JTextField tfLogTitle;
 	private JTextArea taLogText;
 	private JComboBox<String> combDate;
 
 	public MainFrame() {
 
+		this.tDao = new TaskDAO();
 		this.db = new Database();
 		this.propFile = new PropertiesFile();
 		this.lDao = new LogDAO();
@@ -156,6 +162,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.lblAddDate = new JLabel("Choose date:", SwingConstants.RIGHT);
 
 		// buttons
+		this.btnRemoveTodo = new JButton("Remove");
+		this.btnAddTodo = new JButton("Add");
 		this.btnRefresh = new JButton("Refresh");
 		this.btnAddNew = new JButton("Add new");
 		this.btnDelete = new JButton("Delete");
@@ -182,6 +190,39 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.spTextArea = new JScrollPane(this.taLogText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
+		// tables
+		this.tblTodo = new JTable() {
+			private static final long serialVersionUID = 1L;
+
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
+		// todo buttons panel
+		this.jpTodoButtons = new JPanel();
+		this.jpTodoButtons.setPreferredSize(new Dimension(200, 50));
+		this.jpTodoButtons.setBackground(Color.GRAY);
+		this.jpTodoButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		this.jpTodoButtons.setLayout(new GridBagLayout());
+		GridBagConstraints gbcTodoButtons = new GridBagConstraints();
+		gbcTodoButtons.insets = new Insets(5, 5, 5, 5);
+		
+		gbcTodoButtons.gridx = 0;
+		gbcTodoButtons.gridy = 0;
+		this.jpTodoButtons.add(this.btnAddTodo, gbcTodoButtons);
+		
+		gbcTodoButtons.gridx = 1;
+		gbcTodoButtons.gridy = 0;
+		this.jpTodoButtons.add(this.btnRemoveTodo, gbcTodoButtons);
+
+		// tblTodo settings
+		this.tblTodo.setCellSelectionEnabled(true);
+		this.tblTodo.setColumnSelectionAllowed(false);
+		this.tblTodo.setRowSelectionAllowed(true);
+		this.tblTodo.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		// dodaj dvoklik sta se desava
+
 		this.tblLogs = new JTable() {
 			private static final long serialVersionUID = 1L;
 
@@ -189,7 +230,7 @@ public class MainFrame extends JFrame implements ActionListener {
 				return false;
 			};
 		};
-		// tbl settings
+		// tblLogs settings
 		this.tblLogs.setCellSelectionEnabled(true);
 		this.tblLogs.setColumnSelectionAllowed(false);
 		this.tblLogs.setRowSelectionAllowed(true);
@@ -203,6 +244,10 @@ public class MainFrame extends JFrame implements ActionListener {
 				}
 			}
 		});
+
+		// todo scroll
+		this.spTodo = new JScrollPane(this.tblTodo);
+		this.spTodo.setPreferredSize(new Dimension(200, 150));
 
 		// Tab layout panel
 		this.jpTable = new JPanel();
@@ -307,11 +352,19 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// todo info
 		this.jpTodoTable = new JPanel();
-		this.jpTodoTable.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		this.jpTodoTable.setBorder(Borders.combineBorders("Todo list", 10));
 		this.jpTodoTable.setBackground(Color.RED);
+		this.jpTodoTable.setLayout(new GridBagLayout());
 		GridBagConstraints gbcToDo = new GridBagConstraints();
-		gbcToDo.fill = GridBagConstraints.HORIZONTAL;
-		gbcToDo.insets = new Insets(3, 5, 5, 3);
+		gbcToDo.insets = new Insets(0, 5, 0, 5);
+
+		gbcToDo.gridwidth = 2;
+		gbcToDo.gridx = 0;
+		gbcToDo.gridy = 0;
+		this.jpTodoTable.add(this.spTodo, gbcToDo);
+		gbcToDo.gridx = 0;
+		gbcToDo.gridy = 1;
+		this.jpTodoTable.add(this.jpTodoButtons, gbcToDo);
 
 		// todo panel
 		this.jpToDo = new JPanel();
@@ -335,7 +388,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		gbcServerInfo.gridx = 1;
 		gbcServerInfo.gridy = 0;
 		this.jpAboutServer.add(this.lblServerName, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 0;
 		gbcServerInfo.gridy = 2;
 		this.jpAboutServer.add(this.lblPort, gbcServerInfo);
@@ -343,7 +396,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		gbcServerInfo.gridx = 1;
 		gbcServerInfo.gridy = 2;
 		this.jpAboutServer.add(this.lblDbPort, gbcServerInfo);
-		
+
 		gbcServerInfo.gridx = 0;
 		gbcServerInfo.gridy = 3;
 		this.jpAboutServer.add(this.lblDb, gbcServerInfo);
@@ -380,7 +433,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpServerInfo = new JPanel();
 		this.jpServerInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpServerInfo.setBackground(Color.CYAN);
-//		this.jpServerInfo.setLayout(new GridLayout(1,1));
+		// this.jpServerInfo.setLayout(new GridLayout(1,1));
 		this.jpServerInfo.add(this.jpAboutServer);
 
 		// show all
@@ -442,7 +495,19 @@ public class MainFrame extends JFrame implements ActionListener {
 	public void refreshTable() throws SQLException {
 		this.tblLogs.setModel(this.lDao.getDataSet());
 		this.tblLogs.removeColumn(this.tblLogs.getColumnModel().getColumn(0)); // hiding the ID column
+		this.lblDaysCounted.setText(this.tblLogs.getRowCount() + "");
 		System.out.println("Refreshed");
+	}
+
+	public void refreshTodo() throws SQLException {
+		this.tblTodo.setModel(this.tDao.getTasks());
+		this.tblTodo.removeColumn(this.tblTodo.getColumnModel().getColumn(0));
+		this.jpToDo.setPreferredSize(this.jpServerInfo.getPreferredSize()); // size of todo container same as server info container
+		
+		TableColumn tblColumn = this.tblTodo.getColumnModel().getColumn(1);
+		tblColumn.setCellRenderer(new PriorityColumnCellRenderer());
+		
+		System.out.println("Uzeti podaci za todo");
 	}
 
 	public void setComponentsEnabled(boolean enabled) {
@@ -501,6 +566,12 @@ public class MainFrame extends JFrame implements ActionListener {
 			System.out.println(this.log);
 
 			this.lDao.addLog(this.log);
+
+			this.tfLogTitle.setText("");
+			this.taLogText.setText("");
+			this.combDate.setSelectedIndex(0);
+
+			this.refreshTable();
 		}
 	}
 

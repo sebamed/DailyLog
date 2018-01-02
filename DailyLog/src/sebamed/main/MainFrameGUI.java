@@ -41,6 +41,7 @@ public class MainFrameGUI {
 						mframe.refreshTable();
 						mframe.allwaysOnBottom();
 						mframe.getDatabaseMeta();
+						mframe.refreshTodo();
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						System.out.println(e1);

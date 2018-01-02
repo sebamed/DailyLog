@@ -15,14 +15,6 @@ import sebamed.main.DbConnection;
 public class LogDAO {
 	
 	private String query;
-	private Log log;
-	
-	private String adress;
-	private int port;
-	private String dbName;
-	private String username;
-	private String pass;
-	
 
 	public LogDAO() {
 		
@@ -37,6 +29,7 @@ public class LogDAO {
 		st.executeUpdate(this.query);
 		
 		System.out.println("Dodat: " + log);
+		
 		
 	}
 	
@@ -59,7 +52,7 @@ public class LogDAO {
 		return buildTableModel(rs);
 	}
 	
-	public static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
+	private static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
 
 		ResultSetMetaData metaData = rs.getMetaData();
 
