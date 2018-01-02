@@ -21,7 +21,6 @@ public class LogDAO {
 	}
 
 	public void addLog(Log log) throws Exception {
-		
 		// statement
 		this.query = "insert into logs(LogTitle, LogText, LogDate, LogDay, LogTime) values('"+log.getTitle()+"', '"+log.getText()+"', '"+ new SimpleDateFormat("dd-MM-yyyy").format(log.getDatum()) + "', '" + new SimpleDateFormat("EEEE").format(log.getDatum()) + "', '" + new SimpleDateFormat("HH:MM:ss").format(log.getDatum()) + "')"; // query za prepared statement
 		
@@ -29,19 +28,23 @@ public class LogDAO {
 		st.executeUpdate(this.query);
 		
 		System.out.println("Dodat: " + log);
+	}
+	
+	public void removeLog(int id) throws SQLException {
+		this.query = "delete from logs where LogID = " + id;
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
 		
-		
+		System.out.println("Obrisan: " + id);
 	}
 	
 	public void clearBase() throws SQLException {
-		
 		this.query = "truncate table logs";
 		
 		Statement st = DbConnection.getConnection().createStatement();
 		st.executeUpdate(this.query);
 		
 		System.out.println("Sve izbrisano!");
-		
 	}
 	
 	public DefaultTableModel getDataSet() throws SQLException {

@@ -39,7 +39,7 @@ public class TaskDAO {
 	}
 
 	public DefaultTableModel getTasks() throws SQLException {
-		String query = "select * from tasks";
+		this.query = "select * from tasks";
 		Statement st = DbConnection.getConnection().createStatement();
 		ResultSet rs = st.executeQuery(query);
 
@@ -68,6 +68,15 @@ public class TaskDAO {
 		}
 
 		return new DefaultTableModel(data, columnNames);
+	}
+
+	public void removeTask(int id) throws SQLException {
+		this.query = "delete from tasks where TaskID = " + id;
+		Statement st = DbConnection.getConnection().createStatement();
+		st.executeUpdate(this.query);
+		
+		System.out.println("Obrisan: " + id);
+		
 	}
 
 }

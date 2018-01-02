@@ -64,17 +64,19 @@ public class MainFrame extends JFrame implements ActionListener {
 	private Log log;
 	private PropertiesFile propFile;
 
+	private TodoAddDialog taDialog;
+	
 	private static String[] logInfo = new String[6];
 
 	// SWING
 	private JMenuBar mbMain;
-	private JMenu mFile, mEdit, mClear;
-	public JMenuItem miFConnect, miFExit, miEClearBase, miEClearTasks;
+	private JMenu mFile, mEdit, mClear, mAdd;
+	public JMenuItem miFConnect, miFExit, miEClearBase, miEClearTasks, miALog, miATask;
 	private JLabel lblAddTitle, lblAddText, lblAddDate, lblServer, lblServerName, lblUser, lblUserName, lblDayCount,
 			lblDaysCounted, lblLastLogin, lblLastLoggedIn, lblDb, lblDbName, lblPort, lblDbPort;
 	private JTabbedPane tpMain;
-	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jpTableTab,
-			jpTableTabButtons, jpAboutServer, jpTodoTable, jpTodoButtons;
+	private JPanel jpDataView, jpInfoView, jpServerInfo, jpToDo, jpTable, jpNew, jpTableTab, jpTableTabButtons,
+			jpAboutServer, jpTodoTable, jpTodoButtons;
 	private JTable tblLogs, tblTodo;
 	private JScrollPane spTableScroll, spTextArea, spTodo;
 	private JButton btnRefresh, btnAddNew, btnDelete, btnEdit, btnView, btnAdd, btnAddTodo, btnRemoveTodo;
@@ -90,11 +92,14 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.lDao = new LogDAO();
 		this.log = new Log();
 
-		// menus
-		this.mClear = new JMenu("Clear");
-		
 		// menu item
 		this.miFConnect = new JMenuItem("Connect");
+		this.miALog = new JMenuItem("Add new log");
+		this.miATask = new JMenuItem("Add new task");
+		
+		// menus
+		this.mAdd = new JMenu("Add");
+		this.mClear = new JMenu("Clear");
 
 		this.miFExit = new JMenuItem("Exit");
 		this.miFExit.addActionListener(new ActionListener() {
@@ -107,6 +112,21 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		});
 		
+		this.miALog.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				MainFrame.this.tpMain.setSelectedComponent(MainFrame.this.jpNew);
+			}
+		});
+		
+		this.miATask.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				MainFrame.this.taDialog = new TodoAddDialog(MainFrame.this, "Add new task"); 
+				MainFrame.this.listenToAddTask();
+			}
+		});
+
 		this.miEClearTasks = new JMenuItem("Clear all tasks");
 		this.miEClearTasks.addActionListener(new ActionListener() {
 			@Override
@@ -151,6 +171,11 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// menu
 		this.mEdit = new JMenu("Edit");
+		
+		this.mEdit.add(this.mAdd);
+		this.mAdd.add(this.miALog);
+		this.mAdd.add(this.miATask);
+		
 		this.mEdit.add(this.mClear);
 		this.mClear.add(this.miEClearBase);
 		this.mClear.add(this.miEClearTasks);
@@ -202,13 +227,13 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// Main panels
 		this.jpDataView = new JPanel();
-		this.jpDataView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpDataView.setBackground(Color.YELLOW);
+		// this.jpDataView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// this.jpDataView.setBackground(Color.YELLOW);
 		this.jpDataView.setLayout(new GridLayout(1, 1));
 
 		this.jpInfoView = new JPanel();
-		this.jpInfoView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpInfoView.setBackground(Color.BLUE);
+		// this.jpInfoView.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// this.jpInfoView.setBackground(Color.BLUE);
 		this.jpInfoView.setLayout(new BoxLayout(this.jpInfoView, BoxLayout.Y_AXIS));
 
 		// scrollable
@@ -232,11 +257,11 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpTodoButtons.setLayout(new GridBagLayout());
 		GridBagConstraints gbcTodoButtons = new GridBagConstraints();
 		gbcTodoButtons.insets = new Insets(5, 5, 5, 5);
-		
+
 		gbcTodoButtons.gridx = 0;
 		gbcTodoButtons.gridy = 0;
 		this.jpTodoButtons.add(this.btnAddTodo, gbcTodoButtons);
-		
+
 		gbcTodoButtons.gridx = 1;
 		gbcTodoButtons.gridy = 0;
 		this.jpTodoButtons.add(this.btnRemoveTodo, gbcTodoButtons);
@@ -276,12 +301,12 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// Tab layout panel
 		this.jpTable = new JPanel();
-		this.jpTable.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpTable.setBackground(Color.RED);
+		// this.jpTable.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// this.jpTable.setBackground(Color.RED);
 
 		// Table and buttons panel
 		this.jpTableTab = new JPanel();
-		this.jpTableTab.setBackground(Color.GREEN);
+		// this.jpTableTab.setBackground(Color.GREEN);
 		this.jpTableTab.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.jpTableTab.setLayout(new BoxLayout(this.jpTableTab, BoxLayout.Y_AXIS));
 
@@ -378,7 +403,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		// todo info
 		this.jpTodoTable = new JPanel();
 		this.jpTodoTable.setBorder(Borders.combineBorders("Todo list", 10));
-		this.jpTodoTable.setBackground(Color.RED);
+		// this.jpTodoTable.setBackground(Color.RED);
 		this.jpTodoTable.setLayout(new GridBagLayout());
 		GridBagConstraints gbcToDo = new GridBagConstraints();
 		gbcToDo.insets = new Insets(0, 5, 0, 5);
@@ -393,8 +418,8 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// todo panel
 		this.jpToDo = new JPanel();
-		this.jpToDo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpToDo.setBackground(Color.PINK);
+		// this.jpToDo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// this.jpToDo.setBackground(Color.PINK);
 		this.jpToDo.add(this.jpTodoTable);
 
 		// server about panel
@@ -456,8 +481,8 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		// server info panel
 		this.jpServerInfo = new JPanel();
-		this.jpServerInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		this.jpServerInfo.setBackground(Color.CYAN);
+		// this.jpServerInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// this.jpServerInfo.setBackground(Color.CYAN);
 		// this.jpServerInfo.setLayout(new GridLayout(1,1));
 		this.jpServerInfo.add(this.jpAboutServer);
 
@@ -480,6 +505,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.jpDataView.add(this.jpTable);
 
 		// listeners
+		this.btnRemoveTodo.addActionListener(this);
+		this.btnDelete.addActionListener(this);
 		this.btnRefresh.addActionListener(this);
 		this.btnAddNew.addActionListener(this);
 		this.btnAdd.addActionListener(this);
@@ -507,7 +534,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		} else if (ae.getSource() == this.btnAddNew) { // go to add new tab
 			MainFrame.this.tpMain.setSelectedComponent(MainFrame.this.jpNew);
-		} else if (ae.getSource() == this.btnAdd) { // go to add new tab
+		} else if (ae.getSource() == this.btnAdd) { // add new
 			try {
 				MainFrame.this.checkForAddNew();
 			} catch (Exception e) {
@@ -515,27 +542,24 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		} else if (ae.getSource() == this.btnView) { // open dialog with log info
 			this.viewLog();
-		} else if (ae.getSource() == this.btnAddTodo) { // open dialog that adds todo
-			 TodoAddDialog taDialog = new TodoAddDialog(this, "Add new task");
-			 taDialog.addWindowFocusListener(new WindowFocusListener() {
-					public void windowGainedFocus(WindowEvent e) {
-
-					}
-
-					public void windowLostFocus(WindowEvent we) { // dispose on click somewhere else than taDialog
-						taDialog.dispose();
-					}
-				});
-			 taDialog.addWindowListener(new WindowAdapter() {
-					@Override
-					public void windowClosed(WindowEvent we) {
-						try {
-							MainFrame.this.refreshTodo();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-				});
+		} else if (ae.getSource() == this.btnDelete) {
+			try {
+				this.deleteLog();
+				this.refreshTable();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else if (ae.getSource() == this.btnRemoveTodo) {
+			try {
+				this.deleteTask();
+				this.refreshTodo();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		else if (ae.getSource() == this.btnAddTodo) { // open dialog that adds todo
+			this.taDialog = new TodoAddDialog(this, "Add new task");
+			MainFrame.this.listenToAddTask();
 		}
 	}
 
@@ -543,22 +567,23 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.tblLogs.setModel(this.lDao.getDataSet());
 		this.tblLogs.removeColumn(this.tblLogs.getColumnModel().getColumn(0)); // hiding the ID column
 		this.lblDaysCounted.setText(this.tblLogs.getRowCount() + "");
-		
+
 		this.allwaysOnBottom(1); // scroll table to bottom
-		
+
 		System.out.println("Refreshed");
 	}
 
 	public void refreshTodo() throws SQLException {
 		this.tblTodo.setModel(this.tDao.getTasks());
 		this.tblTodo.removeColumn(this.tblTodo.getColumnModel().getColumn(0));
-		this.jpToDo.setPreferredSize(this.jpServerInfo.getPreferredSize()); // size of todo container same as server info container
-		
+		this.jpToDo.setPreferredSize(this.jpServerInfo.getPreferredSize()); // size of todo container same as server
+																			// info container
+
 		this.allwaysOnBottom(2); // scroll table to bottom
-		
+
 		TableColumn tblColumn = this.tblTodo.getColumnModel().getColumn(1);
 		tblColumn.setCellRenderer(new PriorityColumnCellRenderer());
-		
+
 		System.out.println("Uzeti podaci za todo");
 	}
 
@@ -577,7 +602,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		this.btnRemoveTodo.setEnabled(enabled);
 
 		// menu items
-		this.miEClearBase.setEnabled(enabled);
+		this.mAdd.setEnabled(enabled);
+		this.mClear.setEnabled(enabled);
 
 		// menu
 		this.enableMenu(enabled);
@@ -596,22 +622,9 @@ public class MainFrame extends JFrame implements ActionListener {
 		return days;
 	}
 
-//	public void allwaysOnBottom() {
-//		JScrollBar verticalBar = this.spTableScroll.getVerticalScrollBar();
-//		AdjustmentListener downScroller = new AdjustmentListener() {
-//			@Override
-//			public void adjustmentValueChanged(AdjustmentEvent e) {
-//				Adjustable adjustable = e.getAdjustable();
-//				adjustable.setValue(adjustable.getMaximum());
-//				verticalBar.removeAdjustmentListener(this);
-//			}
-//		};
-//		verticalBar.addAdjustmentListener(downScroller);
-//	}
-	
 	public void allwaysOnBottom(int number) {
 		JScrollBar verticalBar = this.spTableScroll.getVerticalScrollBar();
-		if(number == 1) {
+		if (number == 1) {
 			verticalBar = this.spTableScroll.getVerticalScrollBar();
 		} else if (number == 2) {
 			verticalBar = this.spTodo.getVerticalScrollBar();
@@ -669,8 +682,52 @@ public class MainFrame extends JFrame implements ActionListener {
 		}
 	}
 
-	private void viewLog() {
+	private boolean checkIfSelected() {
 		if (this.tblLogs.getSelectionModel().isSelectionEmpty()) { // no selected rows
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	private void deleteLog() throws SQLException {
+		if (!this.checkIfSelected()) {
+			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			int logID = (int) this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 0);
+			String date = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 3).toString();
+			int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete log from " + date + "?",
+					"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (result == JOptionPane.NO_OPTION) {
+				return;
+			} else {
+				this.lDao.removeLog(logID);
+				JOptionPane.showMessageDialog(this, "Successfully deleted!", "Success",
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
+	}
+	
+	private void deleteTask() throws SQLException {
+		if (this.tblTodo.getSelectionModel().isSelectionEmpty()) { // no selected rows
+			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			int taskID = (int) this.tblTodo.getModel().getValueAt(this.tblTodo.getSelectedRow(), 0);
+			String name = this.tblTodo.getModel().getValueAt(this.tblTodo.getSelectedRow(), 1).toString();
+			int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete task '" + name + "'?",
+					"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (result == JOptionPane.NO_OPTION) {
+				return;
+			} else {
+				this.tDao.removeTask(taskID);
+				JOptionPane.showMessageDialog(this, "Successfully deleted!", "Success",
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
+	}
+
+	private void viewLog() {
+		if (!this.checkIfSelected()) { // no selected rows
 			JOptionPane.showMessageDialog(this, "There is no row selected!", "Error", JOptionPane.ERROR_MESSAGE);
 		} else {
 			this.logInfo[0] = this.tblLogs.getModel().getValueAt(this.tblLogs.getSelectedRow(), 0).toString(); // id
@@ -711,5 +768,27 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	public static String[] getLogInfo() {
 		return logInfo;
+	}
+	
+	public void listenToAddTask() {
+		this.taDialog.addWindowFocusListener(new WindowFocusListener() {
+			public void windowGainedFocus(WindowEvent e) {
+
+			}
+
+			public void windowLostFocus(WindowEvent we) { // dispose on click somewhere else than taDialog
+				MainFrame.this.taDialog.dispose();
+			}
+		});
+		taDialog.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent we) {
+				try {
+					MainFrame.this.refreshTodo();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 }
