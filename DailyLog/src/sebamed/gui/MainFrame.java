@@ -71,7 +71,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	// SWING
 	private JMenuBar mbMain;
 	private JMenu mFile, mEdit, mClear, mAdd;
-	public JMenuItem miFConnect, miFExit, miEClearBase, miEClearTasks, miALog, miATask;
+	private JMenuItem miFConnect, miFExit, miEClearBase, miEClearTasks, miALog, miATask;
 	private JLabel lblAddTitle, lblAddText, lblAddDate, lblServer, lblServerName, lblUser, lblUserName, lblDayCount,
 			lblDaysCounted, lblLastLogin, lblLastLoggedIn, lblDb, lblDbName, lblPort, lblDbPort;
 	private JTabbedPane tpMain;

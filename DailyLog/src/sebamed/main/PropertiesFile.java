@@ -110,7 +110,7 @@ public class PropertiesFile {
 			
 			this.prop.load(is);
 			
-			if(this.isSaved()){ // there is saved preset
+			if(this.prop.getProperty("db_Adress") != null){ // there is saved preset
 				this.db.setDbAdress(this.prop.getProperty("db_Adress"));
 				this.db.setDbPort(this.prop.getProperty("db_Port"));
 				this.db.setDbName(this.prop.getProperty("db_Name"));
@@ -127,5 +127,4 @@ public class PropertiesFile {
 			return null;
 		}
 	}
-
 }
